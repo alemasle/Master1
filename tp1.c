@@ -9,20 +9,21 @@
 
 int main(int argc, char* argv[]){
 	
+	
+	char cmd[512];
+	FILE *pGrep;
+	FILE *proc;
+	char npid[512];
 	int num_pid;
 	long attache;
+	char cmd2[512];
+	FILE *nm;
 	FILE *adrMemoir;
+	long unsigned adrMem;
 	char str1[512];
 	char str2[512];
-	char cmd[512];
-	char cmd2[512];
-	FILE *proc;
-	FILE *tmp;
-	char npid[16];
-	//char stringAdrMem[16];
-	long unsigned adrMem;
-	FILE *pGrep;
-	FILE *nm;
+	FILE *chemin;
+	FILE *file;
 	char stop ={0xCC};
 
 
@@ -72,8 +73,6 @@ int main(int argc, char* argv[]){
 	//on attend que ca finisse avec waitpid
 	wait(&num_pid);
 	
-	//penser à proc/pid/
-	//pour acceder à la mémoire du processus avec open, read et lseek
 
 	/////////////////////////////////// PARTI DES ADRESSE MEMOIRE
 	
@@ -87,9 +86,8 @@ int main(int argc, char* argv[]){
 	}
 	adrMemoir= fopen("adresseMemoire.txt","r");
 
-
 	if (adrMemoir == NULL){
-		perror("fopen erreur adresseMemoire.txt\n");//ne ligne
+		perror("fopen erreur adresseMemoire.txt\n");
 		return -1;
 	}
 
@@ -108,34 +106,46 @@ int main(int argc, char* argv[]){
 	}
 	
 	
-	if(fseek(tmp,adrMem,SEEK_SET)<0){
+	if(fseek(file,adrMem,SEEK_SET)<0){
 		perror("fseek erreur\n");
 		return -1;	
 	}
 
-	if(fwrite(stop,1,1,tmp)){
+	if(fwrite(stop,1,1,file)){
 		perror("fwrite erreur\n");
 		return -1;
 	}
 
 	printf("succes ?");
 	//on ferme
+	if(fclose(pGrep)<0){
+		perror("erreur sur la fermeture de pGrep");
+		return -1;
+	}
 	if(fclose(proc)<0){
 		perror("erreur sur la fermeture de proc");
+		return -1;
+	}
+	
+	if(fclose(nm)<0){
+		perror("erreur sur la fermeture de nm");
 		return -1;
 	}
 	if(fclose(adrMemoir)<0){
 		perror("erreur sur la fermeture de adrmemoir");
 		return -1;
 	}
-	if(fclose(pGrep)<0){
-		perror("erreur sur la fermeture de men");
+	
+	if(fclose(chemin)<0){
+		perror("erreur sur la fermeture de chemin");
 		return -1;
 	}
-	if(fclose(nm)<0){
-		perror("erreur sur la fermeture de men");
+	if(fclose(file)<0){
+		perror("erreur sur la fermeture de file");
 		return -1;
 	}
+	
+
 	return 0;
 }
 
