@@ -21,13 +21,18 @@ program returns [ASD.Program out]
     ;
 
 expression returns [ASD.Expression out]
-    : l=factor PLUS r=expression  { $out = new ASD.AddExpression($l.out, $r.out); }
+    : l=factor PLUS r=expression  { $out = new ASD.AddExpression($l.out, $r.out); }    
+    | l=factor SOUS r=expression  { $out = new ASD.SousExpression($l.out, $r.out); }
+    | l=factor MULT r=expression  { $out = new ASD.MultExpression($l.out, $r.out); }
+    | l=factor DIV r=expression  { $out = new ASD.DivExpression($l.out, $r.out); }    
     | f=factor { $out = $f.out; }
     // TODO : that's all?
     ;
 
+
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
+    | LP e=expression RP { $out = $e.out; }
     // TODO : that's all?
     ;
 

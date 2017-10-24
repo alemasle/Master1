@@ -16,7 +16,7 @@ public class SymbolTable {
     String ident; // minimum, used in the storage map
   }
 
-  public static class VariableSymbol {
+  public static class VariableSymbol extends Symbol {
     ASD.Type type;
     String ident;
 
@@ -26,7 +26,7 @@ public class SymbolTable {
     }
   }
 
-  public static class FunctionSymbol {
+  public static class FunctionSymbol extends Symbol {
     ASD.Type returnType;
     String ident;
     SymbolTable arguments; // Its argument can be viewed as a symbol table
