@@ -153,7 +153,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = div " + type + " " + left + ", " + right + "\n";
+			return lvalue + " = udiv " + type + " " + left + ", " + right + "\n";
 		}
 	}
 
