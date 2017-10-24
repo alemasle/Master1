@@ -13,8 +13,6 @@ options {
 }
 
 
-// TODO : other rules
-
 program returns [ASD.Program out]
     : e=expression { $out = new ASD.Program($e.out); }
     ;
@@ -29,12 +27,11 @@ expression returns [ASD.Expression out]
     
 expression2 returns [ASD.Expression out]
 	: l=factor
-		( MULT r=factor  { $out = new ASD.MultExpression($l.out, $r.out); }
-	    | DIV r=factor  { $out = new ASD.DivExpression($l.out, $r.out); }
+		( MULT r=expression2  { $out = new ASD.MultExpression($l.out, $r.out); }
+	    | DIV r=expression2  { $out = new ASD.DivExpression($l.out, $r.out); }
 		)+
 	| l=factor { $out = $l.out; }
 	;
-    
 
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
