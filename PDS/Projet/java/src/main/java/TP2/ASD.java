@@ -175,7 +175,7 @@ public class ASD {
 			// allocate a new identifier for the result
 			String result = Utils.newtmp();
 
-			// new add instruction result = left + right
+			// new add instruction result = left - right
 			Llvm.Instruction sous = new Llvm.Sous(leftRet.type.toLlvmType(), leftRet.result, rightRet.result, result);
 
 			// append this instruction
@@ -218,7 +218,7 @@ public class ASD {
 			// allocate a new identifier for the result
 			String result = Utils.newtmp();
 
-			// new add instruction result = left + right
+			// new add instruction result = left * right
 			Llvm.Instruction mult = new Llvm.Mult(leftRet.type.toLlvmType(), leftRet.result, rightRet.result, result);
 
 			// append this instruction
@@ -261,7 +261,7 @@ public class ASD {
 			// allocate a new identifier for the result
 			String result = Utils.newtmp();
 
-			// new add instruction result = left + right
+			// new add instruction result = left / right
 			Llvm.Instruction div = new Llvm.Div(leftRet.type.toLlvmType(), leftRet.result, rightRet.result, result);
 
 			// append this instruction
