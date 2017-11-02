@@ -34,7 +34,6 @@ expression2 returns [ASD.Expression out]
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
     | LP e=expression RP { $out = $e.out; }
-    | (PLUS | SOUS) f=factor {$out = $f.out; }
     ;
 
 primary returns [ASD.Expression out]
