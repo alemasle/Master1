@@ -18,17 +18,15 @@ program returns [ASD.Program out]
     ;
 
 expression returns [ASD.Expression out]
-    : l=expression2 { $out = $l.out; }
-	    ( PLUS r=expression  { $out = new ASD.AddExpression($l.out, $r.out); }    
-	    | SOUS r=expression  { $out = new ASD.SousExpression($l.out, $r.out); }
-    	)*
+    : l=expression PLUS r=expression2 { $out = new ASD.AddExpression($l.out, $r.out); }    
+	| l=expression SOUS r=expression2 { $out = new ASD.SousExpression($l.out, $r.out); }
+	| e=expression2 { $out = $e.out; }
     ;
     
 expression2 returns [ASD.Expression out]
-	: l=factor { $out = $l.out; }
-		( MULT r=expression2  { $out = new ASD.MultExpression($l.out, $r.out); }
-	    | DIV r=expression2  { $out = new ASD.DivExpression($l.out, $r.out); }
-		)*
+	: l=expression2 MULT r=factor  { $out = new ASD.MultExpression($l.out, $r.out); }
+	| l=expression2 DIV r=factor  { $out = new ASD.DivExpression($l.out, $r.out); }
+	| f=factor { $out = $f.out; }
 	;
 
 factor returns [ASD.Expression out]
