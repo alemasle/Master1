@@ -35,5 +35,7 @@ factor returns [ASD.Expression out]
     ;
 
 primary returns [ASD.Expression out]
-    : INTEGER { $out = new ASD.IntegerExpression($INTEGER.int); }
+    : {boolean unitaire = true; }
+    (PLUS|SOUS {unitaire = !unitaire;})* INTEGER { if(unitaire) $out = new ASD.IntegerExpression($INTEGER.int); else $out = new ASD.IntegerExpression(0 - $INTEGER.int); }
+    | BOOL {$out = new ASD.BooleanExpression($BOOL.int); }
     ;

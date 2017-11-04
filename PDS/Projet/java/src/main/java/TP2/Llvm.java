@@ -72,9 +72,17 @@ public class Llvm {
 		public abstract String toString();
 	}
 
+	// Type Int
 	static public class IntType extends Type {
 		public String toString() {
 			return "i32";
+		}
+	}
+
+	// Type Booleen
+	static public class BoolType extends Type {
+		public String toString() {
+			return "i1";
 		}
 	}
 
@@ -154,6 +162,42 @@ public class Llvm {
 
 		public String toString() {
 			return lvalue + " = udiv " + type + " " + left + ", " + right + "\n";
+		}
+	}
+
+	static public class And extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
+
+		public And(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
+
+		public String toString() {
+			return lvalue + " = and " + type + " " + left + ", " + right + "\n";
+		}
+	}
+
+	static public class Or extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
+
+		public Or(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
+
+		public String toString() {
+			return lvalue + " = or " + type + " " + left + ", " + right + "\n";
 		}
 	}
 

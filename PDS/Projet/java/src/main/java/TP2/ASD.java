@@ -59,6 +59,81 @@ public class ASD {
 		}
 	}
 
+	// Concrete class for Expression: constant (integer) case
+	static public class IntegerExpression extends Expression {
+		int value;
+
+		public IntegerExpression(int value) {
+			this.value = value;
+		}
+
+		public String pp() {
+			return "" + value;
+		}
+
+		public RetExpression toIR() {
+			// Here we simply return an empty IR
+			// the `result' of this expression is the integer itself (as string)
+			return new RetExpression(new Llvm.IR(Llvm.empty(), Llvm.empty()), new IntType(), "" + value);
+		}
+	}
+
+	// Concrete class for Expression: constant (boolean) case
+	static public class BooleanExpression extends Expression {
+		int value;
+
+		public BooleanExpression(int value) {
+			this.value = value;
+		}
+
+		public String pp() {
+			return "" + value;
+		}
+
+		public RetExpression toIR() {
+			// Here we simply return an empty IR
+			// the `result' of this expression is the integer itself (as string)
+			return new RetExpression(new Llvm.IR(Llvm.empty(), Llvm.empty()), new BoolType(), "" + value);
+		}
+	}
+
+	// Warning: this is the type from VSL+, not the LLVM types!
+	static public abstract class Type {
+		public abstract String pp();
+
+		public abstract Llvm.Type toLlvmType();
+	}
+
+	static class IntType extends Type {
+		public String pp() {
+			return "INT";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof IntType;
+		}
+
+		public Llvm.Type toLlvmType() {
+			return new Llvm.IntType();
+		}
+	}
+
+	static class BoolType extends Type {
+		public String pp() {
+			return "BOOL";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof BoolType;
+		}
+
+		public Llvm.Type toLlvmType() {
+			return new Llvm.BoolType();
+		}
+	}
+
 	// Concrete class for Expression: add case
 	static public class AddExpression extends Expression {
 		Expression left;
@@ -100,47 +175,6 @@ public class ASD {
 			// return the generated IR, plus the type of this expression
 			// and where to find its result
 			return new RetExpression(leftRet.ir, leftRet.type, result);
-		}
-	}
-
-	// Concrete class for Expression: constant (integer) case
-	static public class IntegerExpression extends Expression {
-		int value;
-
-		public IntegerExpression(int value) {
-			this.value = value;
-		}
-
-		public String pp() {
-			return "" + value;
-		}
-
-		public RetExpression toIR() {
-			// Here we simply return an empty IR
-			// the `result' of this expression is the integer itself (as string)
-			return new RetExpression(new Llvm.IR(Llvm.empty(), Llvm.empty()), new IntType(), "" + value);
-		}
-	}
-
-	// Warning: this is the type from VSL+, not the LLVM types!
-	static public abstract class Type {
-		public abstract String pp();
-
-		public abstract Llvm.Type toLlvmType();
-	}
-
-	static class IntType extends Type {
-		public String pp() {
-			return "INT";
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return obj instanceof IntType;
-		}
-
-		public Llvm.Type toLlvmType() {
-			return new Llvm.IntType();
 		}
 	}
 
