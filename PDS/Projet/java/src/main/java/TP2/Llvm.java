@@ -8,7 +8,7 @@ import java.util.*;
 public class Llvm {
 	static public class IR {
 		List<Instruction> header; // IR instructions to be placed before the
-									// code (global definitions)
+		// code (global definitions)
 		List<Instruction> code; // main code
 
 		public IR(List<Instruction> header, List<Instruction> code) {
@@ -157,26 +157,34 @@ public class Llvm {
 			return lvalue + " = udiv " + type + " " + left + ", " + right + "\n";
 		}
 	}
-	
-	static public class Affect extends Instruction {
-		Type type;
-		String left;
-		String right;
-		String lvalue;
 
-		public Affect() {
-			this.type = type;
-			this.left = left;
-			this.right = right;
-			this.lvalue = lvalue;
+	static public class Affect extends Instruction {
+		String identificateur;
+		String expression;
+
+		public Affect(String affectable, String expression) {
+			this.identificateur = affectable;
+			this.expression = expression;
 		}
 
 		public String toString() {
-			return lvalue + " = store " + type + " " + left + ", " + right + "\n";
+			return "store " + expression + ", " + identificateur + "\n";
 		}
 	}
 
-	
+	static public class Const extends Instruction {
+		Type type;
+		String ident;
+
+		public Const(Type type, String ident) {
+			this.type = type;
+			this.ident = ident;
+		}
+
+		public String toString() {
+			return type + "* " + ident + "\n";
+		}
+	}
 
 	static public class Return extends Instruction {
 		Type type;

@@ -4,13 +4,17 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import TP2.Llvm.Instruction;
+
 public class ASD {
 	static public class Program {
-		Expression e; // What a program contains. TODO : change when you extend
-						// the language
+		Expression e;
+		Instructions i;// What a program contains. TODO : change when you extend
+		// the language
 
-		public Program(Expression e) {
+		public Program(Instructions i, Expression e) {
 			this.e = e;
+			this.i = i;
 		}
 
 		// Pretty-printer
@@ -29,6 +33,105 @@ public class ASD {
 			retExpr.ir.appendCode(ret);
 
 			return retExpr.ir;
+		}
+	}
+
+	static public abstract class Instructions {
+		public abstract String pp();
+
+		public abstract RetInstructions toIR() throws TypeException;
+
+		static public class RetInstructions {
+			// The LLVM IR:
+			public Llvm.IR ir;
+
+			public RetInstructions(Llvm.IR ir) {
+				this.ir = ir;
+			}
+		}
+	}
+
+	static public abstract class Identificateur {
+		public abstract String pp();
+
+		public abstract RetIdentificateur toIR() throws TypeException;
+
+		static public class RetIdentificateur {
+			// The LLVM IR:
+			public Llvm.IR ir;
+			// And additional stuff:
+			public Type type;
+			public String result; // The name containing the expression's result
+			// (either an identifier, or an immediate value)
+
+			public RetIdentificateur(Llvm.IR ir, Type type, String result) {
+				this.ir = ir;
+				this.type = type;
+				this.result = result;
+			}
+		}
+	}
+
+	static public class AffectInstructions extends Instructions {
+		Identificateur ident;
+		Expression expr;
+
+		public AffectInstructions(Identificateur ident, Expression expr) {
+			this.ident = ident;
+			this.expr = expr;
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return "(" + ident.pp() + " := " + expr.pp() + ")";
+		}
+
+		public RetInstructions toIR() throws TypeException {
+			Identificateur.RetIdentificateur identRet = ident.toIR();
+			Expression.RetExpression exprRet = expr.toIR();
+
+			// We check if the types mismatches
+			if (!identRet.type.equals(exprRet.type)) {
+				throw new TypeException("type mismatch: have " + identRet.type + " and " + exprRet.type);
+			}
+
+			// We base our build on the left generated IR:
+			// append right code
+			identRet.ir.append(exprRet.ir);
+
+			// new affect instruction result = affectable := expression
+			Llvm.Instruction affect = new Llvm.Affect(identRet.result, exprRet.result);
+
+			// append this instruction
+			identRet.ir.appendCode(affect);
+
+			// return the generated IR, plus the type of this expression
+			// and where to find its result
+			return new RetInstructions(identRet.ir);
+		}
+	}
+
+	static public class Const extends Identificateur {
+		Type type;
+		String ident;
+		List<Instruction> code = new ArrayList<>();
+
+		public Const(Type type, String ident) {
+			this.type = type;
+			this.ident = ident;
+		}
+
+		public String pp() {
+			return "" + ident;
+		}
+
+		Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+		Llvm.Instruction consInstr = new Llvm.Const(type.toLlvmType(), ident);
+
+		public RetIdentificateur toIR() {
+
+			return new RetIdentificateur(constIR, new IntType(), "" + ident);
 		}
 	}
 
