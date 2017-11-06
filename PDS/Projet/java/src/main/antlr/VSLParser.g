@@ -14,8 +14,20 @@ options {
 
 
 program returns [ASD.Program out]
-    : e=expression { $out = new ASD.Program($e.out); }
+    : (b=bloc)* { $out = new ASD.Program($b.out); }
     ;
+    
+bloc returns [ASD.Bloc out]
+	: i=instructions e=expression { $out = new ASD.Bloc($i.out, $e.out); }
+    ;
+
+instructions returns [ASD.Instruction out]
+	: a=affect* {$out = new ASD.AffectInstruction($a.out); }
+	;
+
+affect returns [ASD.Instruction out]
+	: i=id AFFECT e=expression { $out = new ASD.Instruction($i.out,$e.out); }
+	;
 
 expression returns [ASD.Expression out]
     : l=expression PLUS r=expression2 { $out = new ASD.AddExpression($l.out, $r.out); }    
@@ -36,6 +48,10 @@ factor returns [ASD.Expression out]
 
 primary returns [ASD.Expression out]
     : {boolean unitaire = true; }
-    (PLUS|SOUS {unitaire = !unitaire;})* INTEGER { if(unitaire) $out = new ASD.IntegerExpression($INTEGER.int); else $out = new ASD.IntegerExpression(0 - $INTEGER.int); }
-    | BOOL {$out = new ASD.BooleanExpression($BOOL.int); }
+      (PLUS|SOUS {unitaire = !unitaire;})* INTEGER { if(unitaire) $out = new ASD.IntegerExpression($INTEGER.int);
+    											     else $out = new ASD.IntegerExpression(0 - $INTEGER.int); }
+    ;
+    
+id returns [ASD.Affectable out]
+    : IDENT {$out = new ASD.AffectIdent($IDENT.text); }
     ;

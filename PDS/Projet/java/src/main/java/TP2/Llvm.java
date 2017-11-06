@@ -79,13 +79,6 @@ public class Llvm {
 		}
 	}
 
-	// Type Booleen
-	static public class BoolType extends Type {
-		public String toString() {
-			return "i1";
-		}
-	}
-
 	// TODO : other types
 
 	// LLVM IR Instructions
@@ -164,14 +157,14 @@ public class Llvm {
 			return lvalue + " = udiv " + type + " " + left + ", " + right + "\n";
 		}
 	}
-
-	static public class And extends Instruction {
+	
+	static public class Affect extends Instruction {
 		Type type;
 		String left;
 		String right;
 		String lvalue;
 
-		public And(Type type, String left, String right, String lvalue) {
+		public Affect() {
 			this.type = type;
 			this.left = left;
 			this.right = right;
@@ -179,27 +172,11 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = and " + type + " " + left + ", " + right + "\n";
+			return lvalue + " = store " + type + " " + left + ", " + right + "\n";
 		}
 	}
 
-	static public class Or extends Instruction {
-		Type type;
-		String left;
-		String right;
-		String lvalue;
-
-		public Or(Type type, String left, String right, String lvalue) {
-			this.type = type;
-			this.left = left;
-			this.right = right;
-			this.lvalue = lvalue;
-		}
-
-		public String toString() {
-			return lvalue + " = or " + type + " " + left + ", " + right + "\n";
-		}
-	}
+	
 
 	static public class Return extends Instruction {
 		Type type;

@@ -78,25 +78,6 @@ public class ASD {
 		}
 	}
 
-	// Concrete class for Expression: constant (boolean) case
-	static public class BooleanExpression extends Expression {
-		int value;
-
-		public BooleanExpression(int value) {
-			this.value = value;
-		}
-
-		public String pp() {
-			return "" + value;
-		}
-
-		public RetExpression toIR() {
-			// Here we simply return an empty IR
-			// the `result' of this expression is the integer itself (as string)
-			return new RetExpression(new Llvm.IR(Llvm.empty(), Llvm.empty()), new BoolType(), "" + value);
-		}
-	}
-
 	// Warning: this is the type from VSL+, not the LLVM types!
 	static public abstract class Type {
 		public abstract String pp();
@@ -119,23 +100,9 @@ public class ASD {
 		}
 	}
 
-	static class BoolType extends Type {
-		public String pp() {
-			return "BOOL";
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return obj instanceof BoolType;
-		}
-
-		public Llvm.Type toLlvmType() {
-			return new Llvm.BoolType();
-		}
-	}
-
 	// Concrete class for Expression: add case
 	static public class AddExpression extends Expression {
+
 		Expression left;
 		Expression right;
 

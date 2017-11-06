@@ -46,7 +46,7 @@ public class SymbolTable {
   // Construct a new symbol table with a parent
   public SymbolTable(SymbolTable parent) {
     table = new HashMap<String, Symbol>();
-    parent = parent;
+    this.parent = parent;
   }
 
   // Add a new symbol

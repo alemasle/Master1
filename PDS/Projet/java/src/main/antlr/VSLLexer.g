@@ -25,8 +25,7 @@ PLUS      : '+'      ;
 SOUS      : '-'      ;
 MULT      : '*'      ;
 DIV      : '/'      ;
-FAUX	: '0'	;
-VRAI	: '1' ;
+AFFECT	: ':='	;
 
 // TODO : other keywords
 
@@ -34,4 +33,3 @@ VRAI	: '1' ;
 IDENT   : LETTER (LETTER|DIGIT)*;
 TEXT    : '"' (ASCII)* '"' { setText(getText().substring(1, getText().length() - 1)); };
 INTEGER : (DIGIT)+ ;
-BOOL	: (FAUX|VRAI);
