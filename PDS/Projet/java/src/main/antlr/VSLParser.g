@@ -18,7 +18,7 @@ program returns [ASD.Program out]
     ;
 
 instructions returns [ASD.Instructions out]
-	: a=affect* { $out = $a.out; }
+	: a=affect { $out = $a.out; }
 	;
 
 affect returns [ASD.Instructions out]

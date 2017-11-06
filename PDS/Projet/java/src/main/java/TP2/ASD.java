@@ -13,7 +13,7 @@ public class ASD {
 
 		// Pretty-printer
 		public String pp() {
-			return e.pp();
+			return i.pp() + e.pp();
 		}
 
 		// IR generation
@@ -94,7 +94,7 @@ public class ASD {
 			identRet.ir.append(exprRet.ir);
 
 			// new affect instruction result = affectable := expression
-			Llvm.Instruction affect = new Llvm.Affect(identRet.result, exprRet.result);
+			Llvm.Instruction affect = new Llvm.Affect(identRet.type.toLlvmType(), identRet.result, exprRet.result);
 
 			// append this instruction
 			identRet.ir.appendCode(affect);

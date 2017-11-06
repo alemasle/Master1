@@ -159,16 +159,20 @@ public class Llvm {
 	}
 
 	static public class Affect extends Instruction {
+		Type type;
 		String identificateur;
 		String expression;
 
-		public Affect(String affectable, String expression) {
-			this.identificateur = affectable;
+		public Affect(Type type, String identificateur, String expression) {
+			this.type = type;
+			this.identificateur = identificateur;
 			this.expression = expression;
 		}
 
 		public String toString() {
-			return "store " + expression + ", " + identificateur + "\n";
+			String str = "%" + identificateur + " = " + "alloca " + type + "\n"
+			 					 + "store " + expression + ", " + identificateur + "\n";
+			return str;
 		}
 	}
 
@@ -182,7 +186,8 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return type + "* " + ident + "\n";
+			String str = "%" + ident + " = " + "alloca " + type + "\n";
+			return str;
 		}
 	}
 
