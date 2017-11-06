@@ -1,11 +1,5 @@
 package TP2;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-
-import TP2.Llvm.Instruction;
-
 public class ASD {
 	static public class Program {
 		Expression e;
@@ -114,7 +108,6 @@ public class ASD {
 	static public class Const extends Identificateur {
 		Type type;
 		String ident;
-		List<Instruction> code = new ArrayList<>();
 
 		public Const(Type type, String ident) {
 			this.type = type;
@@ -125,11 +118,12 @@ public class ASD {
 			return "" + ident;
 		}
 
-		Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-
-		Llvm.Instruction consInstr = new Llvm.Const(type.toLlvmType(), ident);
-
 		public RetIdentificateur toIR() {
+			Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Llvm.Instruction cons = new Llvm.Const(type.toLlvmType(), ident);
+
+			constIR.appendCode(cons);
 
 			return new RetIdentificateur(constIR, new IntType(), "" + ident);
 		}

@@ -27,8 +27,8 @@ affect returns [ASD.Instructions out]
 
 expression returns [ASD.Expression out]
     : l=expression PLUS r=expression2 { $out = new ASD.AddExpression($l.out, $r.out); }
-	| l=expression SOUS r=expression2 { $out = new ASD.SousExpression($l.out, $r.out); }
-	| e=expression2 { $out = $e.out; }
+	  | l=expression SOUS r=expression2 { $out = new ASD.SousExpression($l.out, $r.out); }
+	  | e=expression2 { $out = $e.out; }
     ;
 
 expression2 returns [ASD.Expression out]
@@ -48,6 +48,6 @@ primary returns [ASD.Expression out]
     											     else $out = new ASD.IntegerExpression(0 - $INTEGER.int); }
     ;
 
-id returns [String out]
-    : IDENT { $out = $IDENT.text; }
+id returns [ASD.Identificateur out]
+    : IDENT { $out = new ASD.Const(new ASD.IntType(), $IDENT.text); }
     ;
