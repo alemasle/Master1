@@ -170,10 +170,30 @@ public class Llvm {
 		}
 
 		public String toString() {
-			String str = "%" + identificateur + " = " + "alloca " + type + "\n"
-			 		   + "store " + type + " " + expression + ", "+ type + "* %" + identificateur + "\n";
-			return str;
+			String pour100 = "";
+			if (Character.isLetter(expression.charAt(0))) {
+				pour100 = "%";
+			}
+			return "%" + identificateur + " = " + "alloca " + type + "\n" + "store " + type + " " + pour100 + expression
+					+ ", " + type + "* %" + identificateur + "\n";
 		}
+	}
+
+	static public class IdentExpr extends Instruction {
+		Type type;
+		String identificateur;
+		String tmp;
+
+		public IdentExpr(Type type, String identificateur, String tmp) {
+			this.type = type;
+			this.identificateur = identificateur;
+			this.tmp = tmp;
+		}
+
+		public String toString() {
+			return tmp + " = load " + type + ", " + type + "* " + "%" + identificateur + "\n";
+		}
+
 	}
 
 	static public class Const extends Instruction {

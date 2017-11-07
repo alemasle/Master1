@@ -19,61 +19,129 @@ public class ASD {
 		// IR generation
 		public Llvm.IR toIR() throws TypeException {
 
-			Instructions.RetInstructions retInstr = i.toIR();
-
-			retInstr.ir.append(retExpr.ir);
+			Bloc.RetBloc retBloc = bloc.toIR();
 
 			// add a return instruction
-			Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
+			if (retBloc.result == null) {
+				retBloc.result = "0";
+				retBloc.type = new IntType();
+			}
 
-			retInstr.ir.appendCode(ret);
+			Llvm.Instruction ret = new Llvm.Return(retBloc.type.toLlvmType(), retBloc.result);
 
-			return retInstr.ir;
+			retBloc.ir.appendCode(ret);
+
+			return retBloc.ir;
 		}
 
 	}
 
 	static public class Bloc {
 
-		Instructions i;
-		Expression e;
-		// What a program contains. TODO : change when you extend
-		// the language
+		List<Statement> ls = new ArrayList<>();
 
-		public Bloc(Instructions i, Expression e) {
-			this.e = e;
-			this.i = i;
+		public Bloc(List<Statement> ls) {
+			this.ls = ls;
 		}
 
 		// Pretty-printer
 		public String pp() {
-			return i.pp() + e.pp();
+			String str = "";
+			for (Statement s : ls) {
+				str += s.pp() + "\n";
+			}
+			return str;
 		}
 
-		// IR generation
-		public Llvm.IR toIR() throws TypeException {
-			// TODO : change when you extend the language
+		static public class RetBloc {
+			// The LLVM IR:
+			public Llvm.IR ir;
+			Type type;
+			String result;
 
-			// computes the IR of the expression
-			Expression.RetExpression retExpr = e.toIR();
-			Instructions.RetInstructions retInstr = i.toIR();
+			public RetBloc(Llvm.IR ir, Type type, String result) {
+				this.ir = ir;
+				this.type = type;
+				this.result = result;
+			}
+		}
 
-			retInstr.ir.append(retExpr.ir);
+		public RetBloc toIR() throws TypeException {
+			Llvm.IR blocIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+			Type derType = null;
+			String derResult = null;
 
-			// add a return instruction
-			Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
+			for (Statement s : ls) {
+				Statement.RetStatement retStat = s.toIR();
+				if (retStat.type != null) {
+					derType = retStat.type;
+					derResult = retStat.result;
+				}
+				blocIR.append(retStat.ir);
 
-			retInstr.ir.appendCode(ret);
-
-			return retInstr.ir;
+			}
+			return new RetBloc(blocIR, derType, derResult);
 		}
 	}
 
-	static public abstract class Statement {
+	static public abstract class Stat {
+		public abstract String pp();
 
+		public abstract RetStatement toIR() throws TypeException;
+
+		static public class RetStatement {
+			// The LLVM IR:
+			public Llvm.IR ir = null;
+			Type type = null;
+			String result = null;
+
+			public RetStatement(Llvm.IR ir, Type type, String result) {
+				this.ir = ir;
+				this.type = type;
+				this.result = result;
+			}
+		}
 	}
 
-	static public abstract class Instructions extends Statement {
+	static public class Statement extends Stat {
+
+		Instructions i = null;
+		Expression e = null;
+
+		public Statement(Expression e) {
+			this.e = e;
+
+		}
+
+		public Statement(Instructions i) {
+			this.i = i;
+		}
+
+		public String pp() {
+			if (i == null && e != null)
+				return e.pp();
+			else if (i != null && e == null)
+				return i.pp();
+			else
+				return "";
+		}
+
+		public RetStatement toIR() throws TypeException {
+
+			if (i != null) {
+
+				Instructions.RetInstructions instrRet = i.toIR();
+				return new RetStatement(instrRet.ir, null, null);
+
+			} else if (e != null) {
+				Expression.RetExpression exprRet = e.toIR();
+				return new RetStatement(exprRet.ir, exprRet.type, exprRet.result);
+			}
+			return null;
+		}
+	}
+
+	static public abstract class Instructions {
 		public abstract String pp();
 
 		public abstract RetInstructions toIR() throws TypeException;
@@ -175,7 +243,7 @@ public class ASD {
 	// attributes)
 	// They can take extra arguments (inherited attributes)
 
-	static public abstract class Expression extends Statement {
+	static public abstract class Expression {
 		public abstract String pp();
 
 		public abstract RetExpression toIR() throws TypeException;
@@ -196,6 +264,33 @@ public class ASD {
 				this.result = result;
 			}
 		}
+	}
+
+	static public class exprIdent extends Expression {
+
+		String ident = null;
+
+		public exprIdent(String ident) {
+			this.ident = ident;
+		}
+
+		public String pp() {
+			return "( " + ident + " )";
+		}
+
+		public RetExpression toIR() throws TypeException {
+
+			Llvm.IR exprIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			String result = Utils.newtmp();
+
+			Llvm.Instruction identExpr = new Llvm.IdentExpr(new IntType().toLlvmType(), ident, result);
+
+			exprIR.appendCode(identExpr);
+
+			return new RetExpression(exprIR, new IntType(), result);
+		}
+
 	}
 
 	// Concrete class for Expression: constant (integer) case

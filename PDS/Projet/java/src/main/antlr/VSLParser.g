@@ -18,7 +18,9 @@ program returns [ASD.Program out]
     ;
 	
 bloc returns [ASD.Bloc out]
-    : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); } (s=statements { ls.add($s.out); } )+ { $out = new ASD.Bloc(ls); }
+    : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); } 
+    (s=statements { ls.add($s.out); } )+
+    { $out = new ASD.Bloc(ls); }
     ;
     
 statements returns [ASD.Statement out]
@@ -55,6 +57,7 @@ primary returns [ASD.Expression out]
     : {boolean unitaire = true; }
       (PLUS|SOUS {unitaire = !unitaire;})* INTEGER { if(unitaire) $out = new ASD.IntegerExpression($INTEGER.int);
     											     else $out = new ASD.IntegerExpression(0 - $INTEGER.int); }
+    | IDENT {$out = new ASD.exprIdent($IDENT.text); }
     ;
 
 id returns [ASD.Identificateur out]

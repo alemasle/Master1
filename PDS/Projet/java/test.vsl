@@ -1,2 +1,3 @@
-Bloc : Statements *
-Statements : Instructions | Expressions | Bloc
+a := 3
+b := a
+c := b + a
