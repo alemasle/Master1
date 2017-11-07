@@ -14,6 +14,14 @@ options {
 
 
 program returns [ASD.Program out]
+    : { List<ASD.bloc> lb = new ArrayList<>(); }
+      (b=bloc { lb.add($b.out); } )* 
+      { $out = new ASD.Program(lb); }
+    ;
+    
+    
+    
+bloc returns [ASD.Bloc out]    
     : i=instructions e=expression { $out = new ASD.Program($i.out, $e.out); }
     ;
 
