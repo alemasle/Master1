@@ -14,16 +14,17 @@ options {
 
 
 program returns [ASD.Program out]
-    : { List<ASD.bloc> lb = new ArrayList<>(); }
-      (b=bloc { lb.add($b.out); } )* 
-      { $out = new ASD.Program(lb); }
+    : b=bloc { $out = new ASD.Program($b.out); }
+    ;
+	
+bloc returns [ASD.Bloc out]
+    : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); } (s=statements { ls.add($s.out); } )+ { $out = new ASD.Bloc(ls); }
     ;
     
-    
-    
-bloc returns [ASD.Bloc out]    
-    : i=instructions e=expression { $out = new ASD.Program($i.out, $e.out); }
-    ;
+statements returns [ASD.Statement out]
+	: i=instructions { $out = new ASD.Statement($i.out); }
+	| e=expression { $out = new ASD.Statement($e.out); }
+	;
 
 instructions returns [ASD.Instructions out]
 	: a=affect { $out = $a.out; } 

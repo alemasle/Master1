@@ -1,12 +1,46 @@
 package TP2;
 
+import java.util.*;
+
 public class ASD {
 	static public class Program {
+
+		Bloc bloc;
+
+		public Program(Bloc bloc) {
+			this.bloc = bloc;
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return bloc.pp();
+		}
+
+		// IR generation
+		public Llvm.IR toIR() throws TypeException {
+
+			Instructions.RetInstructions retInstr = i.toIR();
+
+			retInstr.ir.append(retExpr.ir);
+
+			// add a return instruction
+			Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
+
+			retInstr.ir.appendCode(ret);
+
+			return retInstr.ir;
+		}
+
+	}
+
+	static public class Bloc {
+
+		Instructions i;
 		Expression e;
-		Instructions i;// What a program contains. TODO : change when you extend
+		// What a program contains. TODO : change when you extend
 		// the language
 
-		public Program(Instructions i, Expression e) {
+		public Bloc(Instructions i, Expression e) {
 			this.e = e;
 			this.i = i;
 		}
@@ -23,19 +57,23 @@ public class ASD {
 			// computes the IR of the expression
 			Expression.RetExpression retExpr = e.toIR();
 			Instructions.RetInstructions retInstr = i.toIR();
-			
+
 			retInstr.ir.append(retExpr.ir);
-			
+
 			// add a return instruction
 			Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
-			
+
 			retInstr.ir.appendCode(ret);
 
 			return retInstr.ir;
 		}
 	}
 
-	static public abstract class Instructions {
+	static public abstract class Statement {
+
+	}
+
+	static public abstract class Instructions extends Statement {
 		public abstract String pp();
 
 		public abstract RetInstructions toIR() throws TypeException;
@@ -84,7 +122,6 @@ public class ASD {
 			identRet.ir.appendCode(affect);
 
 			// return the generated IR, plus the type of this expression
-			// and where to find its resultinst
 			return new RetInstructions(identRet.ir);
 		}
 	}
@@ -138,7 +175,7 @@ public class ASD {
 	// attributes)
 	// They can take extra arguments (inherited attributes)
 
-	static public abstract class Expression {
+	static public abstract class Expression extends Statement {
 		public abstract String pp();
 
 		public abstract RetExpression toIR() throws TypeException;
