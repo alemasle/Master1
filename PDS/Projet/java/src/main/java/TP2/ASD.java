@@ -22,11 +22,16 @@ public class ASD {
 
 			// computes the IR of the expression
 			Expression.RetExpression retExpr = e.toIR();
+			Instructions.RetInstructions retInstr = i.toIR();
+			
+			retInstr.ir.append(retExpr.ir);
+			
 			// add a return instruction
 			Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
-			retExpr.ir.appendCode(ret);
+			
+			retInstr.ir.appendCode(ret);
 
-			return retExpr.ir;
+			return retInstr.ir;
 		}
 	}
 
@@ -41,27 +46,6 @@ public class ASD {
 
 			public RetInstructions(Llvm.IR ir) {
 				this.ir = ir;
-			}
-		}
-	}
-
-	static public abstract class Identificateur {
-		public abstract String pp();
-
-		public abstract RetIdentificateur toIR() throws TypeException;
-
-		static public class RetIdentificateur {
-			// The LLVM IR:
-			public Llvm.IR ir;
-			// And additional stuff:
-			public Type type;
-			public String result; // The name containing the expression's result
-			// (either an identifier, or an immediate value)
-
-			public RetIdentificateur(Llvm.IR ir, Type type, String result) {
-				this.ir = ir;
-				this.type = type;
-				this.result = result;
 			}
 		}
 	}
@@ -100,8 +84,29 @@ public class ASD {
 			identRet.ir.appendCode(affect);
 
 			// return the generated IR, plus the type of this expression
-			// and where to find its result
+			// and where to find its resultinst
 			return new RetInstructions(identRet.ir);
+		}
+	}
+
+	static public abstract class Identificateur {
+		public abstract String pp();
+
+		public abstract RetIdentificateur toIR() throws TypeException;
+
+		static public class RetIdentificateur {
+			// The LLVM IR:
+			public Llvm.IR ir;
+			// And additional stuff:
+			public Type type;
+			public String result; // The name containing the expression's result
+			// (either an identifier, or an immediate value)
+
+			public RetIdentificateur(Llvm.IR ir, Type type, String result) {
+				this.ir = ir;
+				this.type = type;
+				this.result = result;
+			}
 		}
 	}
 
@@ -217,7 +222,6 @@ public class ASD {
 		public RetExpression toIR() throws TypeException {
 			RetExpression leftRet = left.toIR();
 			RetExpression rightRet = right.toIR();
-
 			// We check if the types mismatches
 			if (!leftRet.type.equals(rightRet.type)) {
 				throw new TypeException("type mismatch: have " + leftRet.type + " and " + rightRet.type);

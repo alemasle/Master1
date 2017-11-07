@@ -171,7 +171,7 @@ public class Llvm {
 
 		public String toString() {
 			String str = "%" + identificateur + " = " + "alloca " + type + "\n"
-			 					 + "store " + expression + ", " + identificateur + "\n";
+			 		   + "store " + type + " " + expression + ", "+ type + "* %" + identificateur + "\n";
 			return str;
 		}
 	}
@@ -186,8 +186,8 @@ public class Llvm {
 		}
 
 		public String toString() {
-			String str = "%" + ident + " = " + "alloca " + type + "\n";
-			return str;
+			//TODO
+			return "";
 		}
 	}
 
