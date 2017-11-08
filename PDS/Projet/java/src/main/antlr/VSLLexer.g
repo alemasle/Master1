@@ -21,11 +21,15 @@ fragment ASCII  : ~('\n'|'"');
 // keywords
 LP    : '(' ; // Left parenthesis
 RP    : ')' ;
+ACCOLADEG	:	'{'	;
+ACCOLADED	:	'}'	;
 PLUS      : '+'      ;
 SOUS      : '-'      ;
 MULT      : '*'      ;
 DIV      : '/'      ;
 AFFECT	: ':='	;
+DECINT	:	'INT';
+VIRGULE	:	','	;
 
 // TODO : other keywords
 

@@ -174,8 +174,7 @@ public class Llvm {
 			if (Character.isLetter(expression.charAt(0))) {
 				pour100 = "%";
 			}
-			return "%" + identificateur + " = " + "alloca " + type + "\n" + "store " + type + " " + pour100 + expression
-					+ ", " + type + "* %" + identificateur + "\n";
+			return "store " + type + " " + pour100 + expression + ", " + type + "* %" + identificateur + "\n";
 		}
 	}
 
@@ -196,21 +195,35 @@ public class Llvm {
 
 	}
 
-	static public class Const extends Instruction {
+	static public class DeclVar extends Instruction {
 		Type type;
 		String ident;
 
-		public Const(Type type, String ident) {
+		public DeclVar(Type type, String ident) {
 			this.type = type;
 			this.ident = ident;
 		}
 
-		@Override
+		public String toString() {
+			return "%" + ident + " = " + "alloca " + type + "\n";
+		}
+
+	}
+	
+	static public class Var extends Instruction {
+		Type type;
+		String ident;
+
+		public Var(Type type, String ident) {
+			this.type = type;
+			this.ident = ident;
+		}
+
 		public String toString() {
 			return "";
 		}
 
-	}
+	} 
 
 	static public class Return extends Instruction {
 		Type type;

@@ -14,14 +14,22 @@ options {
 
 
 program returns [ASD.Program out]
-    : b=bloc { $out = new ASD.Program($b.out); }
+    : ACCOLADEG b=bloc ACCOLADED EOF { $out = new ASD.Program($b.out); }
+    | b=bloc EOF { $out = new ASD.Program($b.out); }
     ;
 	
 bloc returns [ASD.Bloc out]
-    : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); } 
+    : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); ASD.Declaration decl = null;} 
+    (d=declarations {decl = $d.out; })?
     (s=statements { ls.add($s.out); } )+
-    { $out = new ASD.Bloc(ls); }
+      { $out = new ASD.Bloc(decl, ls); }
     ;
+    
+declarations returns [ASD.Declaration out]
+	: { List<ASD.DeclVar> lvar = new ArrayList<ASD.DeclVar>(); }
+	DECINT (d=declid { lvar.add($d.out); } (VIRGULE d=declid { lvar.add($d.out); } )* )
+	  { $out = new ASD.Declaration(lvar); }
+	;    
     
 statements returns [ASD.Statement out]
 	: i=instructions { $out = new ASD.Statement($i.out); }
@@ -33,18 +41,22 @@ instructions returns [ASD.Instructions out]
 	;
 
 affect returns [ASD.Instructions out]
-	: i=id AFFECT e=expression { $out = new ASD.AffectInstructions($i.out,$e.out); }
+	: i=identificateur AFFECT e=expression { $out = new ASD.AffectInstructions($i.out,$e.out); }
 	;
 
 expression returns [ASD.Expression out]
-    : l=expression PLUS r=expression2 { $out = new ASD.AddExpression($l.out, $r.out); }
-	  | l=expression SOUS r=expression2 { $out = new ASD.SousExpression($l.out, $r.out); }
-	  | e=expression2 { $out = $e.out; }
+    : l=expression 
+    	( PLUS r=expression2 { $out = new ASD.AddExpression($l.out, $r.out); }
+		| SOUS r=expression2 { $out = new ASD.SousExpression($l.out, $r.out); } 
+		)
+	| e=expression2 { $out = $e.out; }
     ;
 
 expression2 returns [ASD.Expression out]
-	: l=expression2 MULT r=factor  { $out = new ASD.MultExpression($l.out, $r.out); }
-	| l=expression2 DIV r=factor  { $out = new ASD.DivExpression($l.out, $r.out); }
+	: l=expression2 
+		( MULT r=factor  { $out = new ASD.MultExpression($l.out, $r.out); }
+		| DIV r=factor  { $out = new ASD.DivExpression($l.out, $r.out); }
+		)
 	| f=factor { $out = $f.out; }
 	;
 
@@ -60,6 +72,10 @@ primary returns [ASD.Expression out]
     | IDENT {$out = new ASD.exprIdent($IDENT.text); }
     ;
 
-id returns [ASD.Identificateur out]
-    : IDENT { $out = new ASD.Const(new ASD.IntType(), $IDENT.text); }
+declid returns [ASD.DeclVar out]
+    : IDENT { $out = new ASD.DeclVar(new ASD.IntType(), $IDENT.text); }
     ;
+    
+identificateur returns [ASD.IdentVar out]
+	: IDENT { $out = new ASD.IdentVar(new ASD.IntType(), $IDENT.text); }
+	;

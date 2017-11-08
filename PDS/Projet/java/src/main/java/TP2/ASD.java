@@ -38,15 +38,17 @@ public class ASD {
 
 	static public class Bloc {
 
+		Declaration dec = null;
 		List<Statement> ls = new ArrayList<>();
 
-		public Bloc(List<Statement> ls) {
+		public Bloc(Declaration dec, List<Statement> ls) {
 			this.ls = ls;
+			this.dec = dec;
 		}
 
 		// Pretty-printer
 		public String pp() {
-			String str = "";
+			String str = dec.pp() + "\n";
 			for (Statement s : ls) {
 				str += s.pp() + "\n";
 			}
@@ -71,6 +73,9 @@ public class ASD {
 			Type derType = null;
 			String derResult = null;
 
+			Declaration.RetDeclaration retDecl = dec.toIR();
+			blocIR.append(retDecl.ir);
+
 			for (Statement s : ls) {
 				Statement.RetStatement retStat = s.toIR();
 				if (retStat.type != null) {
@@ -78,10 +83,51 @@ public class ASD {
 					derResult = retStat.result;
 				}
 				blocIR.append(retStat.ir);
-
 			}
+
 			return new RetBloc(blocIR, derType, derResult);
 		}
+	}
+
+	static public class Declaration {
+		List<DeclVar> lVar = new ArrayList<DeclVar>();
+
+		static public class RetDeclaration {
+			// The LLVM IR:
+			public Llvm.IR ir = null;
+			Type type = null;
+
+			public RetDeclaration(Llvm.IR ir) {
+				this.ir = ir;
+			}
+		}
+
+		public Declaration(List<DeclVar> lVar) {
+			this.lVar = lVar;
+		}
+
+		public String pp() {
+			String str = "";
+			for (DeclVar v : lVar) {
+				str += v.pp() + "\n";
+			}
+			return str;
+		}
+
+		public RetDeclaration toIR() throws TypeException {
+			Llvm.IR declIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			for (DeclVar declVar : lVar) {
+
+				DeclVar.RetIdentificateur retDeclVar = declVar.toIR();
+
+				declIR.append(retDeclVar.ir);
+
+			}
+
+			return new RetDeclaration(declIR);
+		}
+
 	}
 
 	static public abstract class Stat {
@@ -215,11 +261,11 @@ public class ASD {
 		}
 	}
 
-	static public class Const extends Identificateur {
+	static public class DeclVar extends Identificateur {
 		Type type;
 		String ident;
 
-		public Const(Type type, String ident) {
+		public DeclVar(Type type, String ident) {
 			this.type = type;
 			this.ident = ident;
 		}
@@ -231,7 +277,31 @@ public class ASD {
 		public RetIdentificateur toIR() {
 			Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
-			Llvm.Instruction cons = new Llvm.Const(type.toLlvmType(), ident);
+			Llvm.Instruction cons = new Llvm.DeclVar(type.toLlvmType(), ident);
+
+			constIR.appendCode(cons);
+
+			return new RetIdentificateur(constIR, new IntType(), "" + ident);
+		}
+	}
+
+	static public class IdentVar extends Identificateur {
+		Type type;
+		String ident;
+
+		public IdentVar(Type type, String ident) {
+			this.type = type;
+			this.ident = ident;
+		}
+
+		public String pp() {
+			return "" + ident;
+		}
+
+		public RetIdentificateur toIR() {
+			Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Llvm.Instruction cons = new Llvm.Var(type.toLlvmType(), ident);
 
 			constIR.appendCode(cons);
 
