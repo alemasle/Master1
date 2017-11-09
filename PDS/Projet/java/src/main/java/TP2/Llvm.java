@@ -106,7 +106,8 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return "br " + type + " " + cond + ", label " + "%" + labelThen + ", label " + "%" + labelElse + "\n";
+			return Utils.indent(1) + "br " + type + " " + cond + ", label " + "%" + labelThen + ", label " + "%"
+					+ labelElse + "\n\n";
 		}
 	}
 
@@ -130,7 +131,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return "br label %" + labelName + "\n";
+			return Utils.indent(1) + "br label %" + labelName + "\n\n";
 		}
 	}
 
@@ -148,7 +149,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = icmp eq " + type + " " + left + ", " + right + "\n";
+			return Utils.indent(1) + lvalue + " = icmp ne " + type + " " + left + ", " + right + "\n";
 		}
 	}
 
@@ -184,7 +185,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = sub " + type + " " + left + ", " + right + "\n";
+			return Utils.indent(1) + lvalue + " = sub " + type + " " + left + ", " + right + "\n";
 		}
 	}
 
@@ -202,7 +203,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = mul " + type + " " + left + ", " + right + "\n";
+			return Utils.indent(1) + lvalue + " = mul " + type + " " + left + ", " + right + "\n";
 		}
 	}
 
@@ -220,7 +221,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = udiv " + type + " " + left + ", " + right + "\n";
+			return Utils.indent(1) + lvalue + " = udiv " + type + " " + left + ", " + right + "\n";
 		}
 	}
 
@@ -240,7 +241,8 @@ public class Llvm {
 			if (Character.isLetter(expression.charAt(0))) {
 				pour100 = "%";
 			}
-			return "store " + type + " " + pour100 + expression + ", " + type + "* %" + identificateur + "\n";
+			return Utils.indent(1) + "store " + type + " " + pour100 + expression + ", " + type + "* %" + identificateur
+					+ "\n";
 		}
 	}
 
@@ -256,7 +258,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return tmp + " = load " + type + ", " + type + "* " + "%" + identificateur + "\n";
+			return Utils.indent(1) + tmp + " = load " + type + ", " + type + "* " + "%" + identificateur + "\n";
 		}
 
 	}
@@ -271,7 +273,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return "%" + ident + " = " + "alloca " + type + "\n";
+			return Utils.indent(1) + "%" + ident + " = " + "alloca " + type + "\n";
 		}
 
 	}
@@ -301,7 +303,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return "ret " + type + " " + value + "\n";
+			return Utils.indent(1) + "ret " + type + " " + value + "\n";
 		}
 	}
 

@@ -25,13 +25,20 @@ public class ASD {
 		// IR generation
 		public Llvm.IR toIR() throws TypeException {
 
+			Llvm.IR prg = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Llvm.Instruction labelEntry = new Llvm.LabelName("entry");
+			prg.appendCode(labelEntry);
+
 			Bloc.RetBloc retBloc = bloc.toIR();
 
 			if (!ASD.retour) {
 				throw new TypeException("RETURN attendu dans la fonction");
 			}
 
-			return retBloc.ir;
+			prg.append(retBloc.ir);
+
+			return prg;
 		}
 
 	}
@@ -67,8 +74,10 @@ public class ASD {
 		public RetBloc toIR() throws TypeException {
 			Llvm.IR blocIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
-			Declaration.RetDeclaration retDecl = dec.toIR();
-			blocIR.append(retDecl.ir);
+			if (dec != null) {
+				Declaration.RetDeclaration retDecl = dec.toIR();
+				blocIR.append(retDecl.ir);
+			}
 
 			for (Statement s : ls) {
 				Statement.RetStatement retStat = s.toIR();
@@ -194,21 +203,21 @@ public class ASD {
 
 	static public class IfInstruction extends Instructions {
 		Expression condExpr;
-		Expression thenExpr;
-		Expression elseExpr;
+		Bloc thenBloc;
+		Bloc elseBloc;
 
-		public IfInstruction(Expression condExpr, Expression thenExpr, Expression elseExpr) {
+		public IfInstruction(Expression condExpr, Bloc thenBloc, Bloc elseBloc) {
 			this.condExpr = condExpr;
-			this.thenExpr = thenExpr;
-			this.elseExpr = elseExpr;
+			this.thenBloc = thenBloc;
+			this.elseBloc = elseBloc;
 		}
 
 		// Pretty-printer
 		public String pp() {
 			String str = "";
-			str = "(" + "if " + condExpr.pp() + "then " + thenExpr.pp();
-			if (elseExpr != null) {
-				str += "else " + elseExpr.pp();
+			str = "(" + "if " + condExpr.pp() + "then " + thenBloc.pp();
+			if (elseBloc != null) {
+				str += "else " + elseBloc.pp();
 			}
 			str += " )";
 			return str;
@@ -216,7 +225,7 @@ public class ASD {
 
 		public RetInstructions toIR() throws TypeException {
 			Expression.RetExpression condRet = condExpr.toIR();
-			Expression.RetExpression thenRet = thenExpr.toIR();
+			Bloc.RetBloc thenRet = thenBloc.toIR();
 
 			String labelThen = Utils.newlab("then");
 			String labelElse = null;
@@ -225,7 +234,7 @@ public class ASD {
 			ASD.pile.push(labelFi);
 			ASD.pile.push(labelFi);
 
-			if (elseExpr != null) {
+			if (elseBloc != null) {
 
 				labelElse = Utils.newlab("else");
 				ASD.pile.push(labelElse);
@@ -238,89 +247,37 @@ public class ASD {
 
 			Llvm.Instruction ifinstruction = new Llvm.IfInstr(new BoolType().toLlvmType(), condRet.result, labelThen,
 					labelElse);
-			//if
+			// if
 			condRet.ir.appendCode(ifinstruction);
 
-			//then
+			// then
 			Llvm.Instruction labelThenNom = new Llvm.LabelName(pile.pop());
 			condRet.ir.appendCode(labelThenNom);
 
 			condRet.ir.append(thenRet.ir);
 
-			Llvm.Instruction labelThenRet = new Llvm.AppelLabel(pile.pop());
+			Llvm.Instruction labelThenRet = new Llvm.AppelLabel(pile.pop());// fi
 			condRet.ir.appendCode(labelThenRet);
 
-			//else
-			if (elseExpr != null) {
-				Expression.RetExpression elseRet = elseExpr.toIR();
+			// else
+			if (elseBloc != null) {
+				Bloc.RetBloc elseRet = elseBloc.toIR();
 				Llvm.Instruction labelElseNom = new Llvm.LabelName(pile.pop());
 				condRet.ir.appendCode(labelElseNom);
 
 				condRet.ir.append(elseRet.ir);
 
-				Llvm.Instruction labelElseRet = new Llvm.AppelLabel(pile.pop());
+				Llvm.Instruction labelElseRet = new Llvm.AppelLabel(pile.pop());// fi
 				condRet.ir.appendCode(labelElseRet);
 
 			}
-			//fi
+			// fi
 			Llvm.Instruction labelFiNom = new Llvm.LabelName(pile.pop());
 			condRet.ir.appendCode(labelFiNom);
 
 			// return the generated IR, plus the type of this expression
 			return new RetInstructions(condRet.ir);
 		}
-	}
-
-	static public class CreateLabel extends Instructions {
-
-		String labelName;
-
-		public CreateLabel() {
-			this.labelName = ASD.pile.pop();
-		}
-
-		// Pretty-printer
-		public String pp() {
-			return "(" + labelName + ": )";
-		}
-
-		public RetInstructions toIR() throws TypeException {
-
-			Llvm.IR labelIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-
-			Llvm.Instruction labelRet = new Llvm.LabelName(labelName);
-
-			labelIR.appendCode(labelRet);
-
-			return new RetInstructions(labelIR);
-		}
-
-	}
-
-	static public class AppelLabel extends Instructions {
-
-		String labelName;
-
-		public AppelLabel() {
-			this.labelName = ASD.pile.pop();
-		}
-
-		// Pretty-printer
-		public String pp() {
-			return "(" + labelName + ")";
-		}
-
-		public RetInstructions toIR() throws TypeException {
-
-			Llvm.IR labelIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-
-			Llvm.Instruction labelRet = new Llvm.AppelLabel(labelName);
-
-			labelIR.appendCode(labelRet);
-
-			return new RetInstructions(labelIR);
-		}
-
 	}
 
 	static public class AffectInstructions extends Instructions {

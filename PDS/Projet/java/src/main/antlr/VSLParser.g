@@ -51,10 +51,10 @@ retour returns [ASD.Instructions out]
 	;
 	
 ifinstr returns [ASD.Instructions out]
-	: {ASD.Expression ex = null; } 
+	: {ASD.Bloc ex = null; } 
 	IF c=condition
-	THEN th=expression
-	(ELSE el=expression { ex=$el.out; } )? 
+	THEN  { ASD.depth ++; } th=bloc { ASD.depth --;}
+	(ELSE { ASD.depth ++;} el=bloc { ASD.depth --;} { ex=$el.out; } )? 
 	FI
 	  { $out = new ASD.IfInstruction($c.out, $th.out, ex); }
 	;
