@@ -2,7 +2,7 @@
 INT x, b
 
 x := 1
-IF x
+IF x*b
 THEN 
 	b:=20
 	x:=b
