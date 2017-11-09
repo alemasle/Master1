@@ -38,11 +38,17 @@ statements returns [ASD.Statement out]
 
 instructions returns [ASD.Instructions out]
 	: a=affect { $out = $a.out; } 
+	| r=retour { $out = $r.out; }
 	;
 
 affect returns [ASD.Instructions out]
 	: i=identificateur AFFECT e=expression { $out = new ASD.AffectInstructions($i.out,$e.out); }
 	;
+	
+retour returns [ASD.Instructions out]
+	: RETURN e=expression { $out = new ASD.ReturnInstructions($e.out); }
+	;
+
 
 expression returns [ASD.Expression out]
     : l=expression 

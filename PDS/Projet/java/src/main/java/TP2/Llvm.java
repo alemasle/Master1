@@ -59,6 +59,7 @@ public class Llvm {
 			r.append("}\n");
 
 			return r.toString();
+
 		}
 	}
 
@@ -209,7 +210,7 @@ public class Llvm {
 		}
 
 	}
-	
+
 	static public class Var extends Instruction {
 		Type type;
 		String ident;
@@ -223,7 +224,7 @@ public class Llvm {
 			return "";
 		}
 
-	} 
+	}
 
 	static public class Return extends Instruction {
 		Type type;

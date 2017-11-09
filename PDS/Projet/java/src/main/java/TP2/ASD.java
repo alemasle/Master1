@@ -3,6 +3,10 @@ package TP2;
 import java.util.*;
 
 public class ASD {
+
+	static Boolean retour = false;
+	static int depth = 0;
+
 	static public class Program {
 
 		Bloc bloc;
@@ -22,14 +26,19 @@ public class ASD {
 			Bloc.RetBloc retBloc = bloc.toIR();
 
 			// add a return instruction
-			if (retBloc.result == null) {
-				retBloc.result = "0";
-				retBloc.type = new IntType();
+			// if (retBloc.result == null) {
+			// retBloc.result = "0";
+			// retBloc.type = new IntType();
+			// }
+
+			if (!ASD.retour) {
+				throw new TypeException("RETURN attendu dans la fonction");
 			}
 
-			Llvm.Instruction ret = new Llvm.Return(retBloc.type.toLlvmType(), retBloc.result);
+			// Llvm.Instruction ret = new Llvm.Return(retBloc.type.toLlvmType(),
+			// retBloc.result);
 
-			retBloc.ir.appendCode(ret);
+			// retBloc.ir.appendCode(ret);
 
 			return retBloc.ir;
 		}
@@ -58,34 +67,34 @@ public class ASD {
 		static public class RetBloc {
 			// The LLVM IR:
 			public Llvm.IR ir;
-			Type type;
-			String result;
+			// Type type;
+			// String result;
 
-			public RetBloc(Llvm.IR ir, Type type, String result) {
+			public RetBloc(Llvm.IR ir) {// , Type type, String result) {
 				this.ir = ir;
-				this.type = type;
-				this.result = result;
+				// this.type = type;
+				// this.result = result;
 			}
 		}
 
 		public RetBloc toIR() throws TypeException {
 			Llvm.IR blocIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-			Type derType = null;
-			String derResult = null;
+			// Type derType = null;
+			// String derResult = null;
 
 			Declaration.RetDeclaration retDecl = dec.toIR();
 			blocIR.append(retDecl.ir);
 
 			for (Statement s : ls) {
 				Statement.RetStatement retStat = s.toIR();
-				if (retStat.type != null) {
-					derType = retStat.type;
-					derResult = retStat.result;
-				}
+				// if (retStat.type != null) {
+				// derType = retStat.type;
+				// derResult = retStat.result;
+				// }
 				blocIR.append(retStat.ir);
 			}
 
-			return new RetBloc(blocIR, derType, derResult);
+			return new RetBloc(blocIR); // derType, derResult);
 		}
 	}
 
@@ -237,6 +246,35 @@ public class ASD {
 
 			// return the generated IR, plus the type of this expression
 			return new RetInstructions(identRet.ir);
+		}
+	}
+
+	static public class ReturnInstructions extends Instructions {
+		Expression expr;
+
+		public ReturnInstructions(Expression expr) {
+			this.expr = expr;
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return "(" + " return " + expr.pp() + " )";
+		}
+
+		public RetInstructions toIR() throws TypeException {
+			Expression.RetExpression exprRet = expr.toIR();
+
+			Llvm.Instruction retour = new Llvm.Return(exprRet.type.toLlvmType(), exprRet.result);
+
+			if (ASD.depth == 0) {
+				ASD.retour = true;
+			}
+
+			// append this instruction
+			exprRet.ir.appendCode(retour);
+
+			// return the generated IR, plus the type of this expression
+			return new RetInstructions(exprRet.ir);
 		}
 	}
 

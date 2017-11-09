@@ -30,6 +30,7 @@ DIV      : '/'      ;
 AFFECT	: ':='	;
 DECINT	:	'INT';
 VIRGULE	:	','	;
+RETURN	:	'RETURN'	;
 
 // TODO : other keywords
 
