@@ -31,6 +31,10 @@ AFFECT	: ':='	;
 DECINT	:	'INT';
 VIRGULE	:	','	;
 RETURN	:	'RETURN'	;
+IF	:	'IF'	;
+THEN	:	'THEN'	;
+ELSE	:	'ELSE'	;
+FI	:	'FI'	;
 
 // TODO : other keywords
 

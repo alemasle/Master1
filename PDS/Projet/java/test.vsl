@@ -2,5 +2,11 @@
 INT x, b
 
 x := 5
+IF 0 
+THEN 4*3
+ELSE 1+1
+FI
+
 RETURN x
 }
+

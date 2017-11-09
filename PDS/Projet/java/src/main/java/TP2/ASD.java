@@ -7,6 +7,8 @@ public class ASD {
 	static Boolean retour = false;
 	static int depth = 0;
 
+	static Stack<String> pile = new Stack<String>();
+
 	static public class Program {
 
 		Bloc bloc;
@@ -25,20 +27,9 @@ public class ASD {
 
 			Bloc.RetBloc retBloc = bloc.toIR();
 
-			// add a return instruction
-			// if (retBloc.result == null) {
-			// retBloc.result = "0";
-			// retBloc.type = new IntType();
-			// }
-
 			if (!ASD.retour) {
 				throw new TypeException("RETURN attendu dans la fonction");
 			}
-
-			// Llvm.Instruction ret = new Llvm.Return(retBloc.type.toLlvmType(),
-			// retBloc.result);
-
-			// retBloc.ir.appendCode(ret);
 
 			return retBloc.ir;
 		}
@@ -67,34 +58,24 @@ public class ASD {
 		static public class RetBloc {
 			// The LLVM IR:
 			public Llvm.IR ir;
-			// Type type;
-			// String result;
 
-			public RetBloc(Llvm.IR ir) {// , Type type, String result) {
+			public RetBloc(Llvm.IR ir) {
 				this.ir = ir;
-				// this.type = type;
-				// this.result = result;
 			}
 		}
 
 		public RetBloc toIR() throws TypeException {
 			Llvm.IR blocIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-			// Type derType = null;
-			// String derResult = null;
 
 			Declaration.RetDeclaration retDecl = dec.toIR();
 			blocIR.append(retDecl.ir);
 
 			for (Statement s : ls) {
 				Statement.RetStatement retStat = s.toIR();
-				// if (retStat.type != null) {
-				// derType = retStat.type;
-				// derResult = retStat.result;
-				// }
 				blocIR.append(retStat.ir);
 			}
 
-			return new RetBloc(blocIR); // derType, derResult);
+			return new RetBloc(blocIR);
 		}
 	}
 
@@ -209,6 +190,137 @@ public class ASD {
 				this.ir = ir;
 			}
 		}
+	}
+
+	static public class IfInstruction extends Instructions {
+		Expression condExpr;
+		Expression thenExpr;
+		Expression elseExpr;
+
+		public IfInstruction(Expression condExpr, Expression thenExpr, Expression elseExpr) {
+			this.condExpr = condExpr;
+			this.thenExpr = thenExpr;
+			this.elseExpr = elseExpr;
+		}
+
+		// Pretty-printer
+		public String pp() {
+			String str = "";
+			str = "(" + "if " + condExpr.pp() + "then " + thenExpr.pp();
+			if (elseExpr != null) {
+				str += "else " + elseExpr.pp();
+			}
+			str += " )";
+			return str;
+		}
+
+		public RetInstructions toIR() throws TypeException {
+			Expression.RetExpression condRet = condExpr.toIR();
+			Expression.RetExpression thenRet = thenExpr.toIR();
+
+			String labelThen = Utils.newlab("then");
+			String labelElse = null;
+			String labelFi = Utils.newlab("fi");
+
+			ASD.pile.push(labelFi);
+			ASD.pile.push(labelFi);
+
+			if (elseExpr != null) {
+
+				labelElse = Utils.newlab("else");
+				ASD.pile.push(labelElse);
+				ASD.pile.push(labelFi);
+
+			} else {
+				labelElse = labelFi;
+			}
+			ASD.pile.push(labelThen);
+
+			Llvm.Instruction ifinstruction = new Llvm.IfInstr(new BoolType().toLlvmType(), condRet.result, labelThen,
+					labelElse);
+			//if
+			condRet.ir.appendCode(ifinstruction);
+
+			//then
+			Llvm.Instruction labelThenNom = new Llvm.LabelName(pile.pop());
+			condRet.ir.appendCode(labelThenNom);
+
+			condRet.ir.append(thenRet.ir);
+
+			Llvm.Instruction labelThenRet = new Llvm.AppelLabel(pile.pop());
+			condRet.ir.appendCode(labelThenRet);
+
+			//else
+			if (elseExpr != null) {
+				Expression.RetExpression elseRet = elseExpr.toIR();
+				Llvm.Instruction labelElseNom = new Llvm.LabelName(pile.pop());
+				condRet.ir.appendCode(labelElseNom);
+
+				condRet.ir.append(elseRet.ir);
+
+				Llvm.Instruction labelElseRet = new Llvm.AppelLabel(pile.pop());
+				condRet.ir.appendCode(labelElseRet);
+
+			}
+			//fi
+			Llvm.Instruction labelFiNom = new Llvm.LabelName(pile.pop());
+			condRet.ir.appendCode(labelFiNom);
+
+			// return the generated IR, plus the type of this expression
+			return new RetInstructions(condRet.ir);
+		}
+	}
+
+	static public class CreateLabel extends Instructions {
+
+		String labelName;
+
+		public CreateLabel() {
+			this.labelName = ASD.pile.pop();
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return "(" + labelName + ": )";
+		}
+
+		public RetInstructions toIR() throws TypeException {
+
+			Llvm.IR labelIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Llvm.Instruction labelRet = new Llvm.LabelName(labelName);
+
+			labelIR.appendCode(labelRet);
+
+			return new RetInstructions(labelIR);
+		}
+
+	}
+
+	static public class AppelLabel extends Instructions {
+
+		String labelName;
+
+		public AppelLabel() {
+			this.labelName = ASD.pile.pop();
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return "(" + labelName + ")";
+		}
+
+		public RetInstructions toIR() throws TypeException {
+
+			Llvm.IR labelIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Llvm.Instruction labelRet = new Llvm.AppelLabel(labelName);
+
+			labelIR.appendCode(labelRet);
+
+			return new RetInstructions(labelIR);
+		}
+
 	}
 
 	static public class AffectInstructions extends Instructions {
@@ -374,6 +486,33 @@ public class ASD {
 		}
 	}
 
+	static public class CondExpression extends Expression {
+
+		Expression expr = null;
+
+		public CondExpression(Expression expr) {
+			this.expr = expr;
+		}
+
+		public String pp() {
+			return "( " + expr + " )";
+		}
+
+		public RetExpression toIR() throws TypeException {
+
+			RetExpression exprRet = expr.toIR();
+
+			String result = Utils.newtmp();
+
+			Llvm.Instruction equalExpr = new Llvm.Equal(new IntType().toLlvmType(), exprRet.result, "0", result);
+
+			exprRet.ir.appendCode(equalExpr);
+
+			return new RetExpression(exprRet.ir, new BoolType(), result);
+		}
+
+	}
+
 	static public class exprIdent extends Expression {
 
 		String ident = null;
@@ -432,13 +571,26 @@ public class ASD {
 			return "INT";
 		}
 
-		@Override
 		public boolean equals(Object obj) {
 			return obj instanceof IntType;
 		}
 
 		public Llvm.Type toLlvmType() {
 			return new Llvm.IntType();
+		}
+	}
+
+	static class BoolType extends Type {
+		public String pp() {
+			return "BOOL";
+		}
+
+		public boolean equals(Object obj) {
+			return obj instanceof BoolType;
+		}
+
+		public Llvm.Type toLlvmType() {
+			return new Llvm.BoolType();
 		}
 	}
 

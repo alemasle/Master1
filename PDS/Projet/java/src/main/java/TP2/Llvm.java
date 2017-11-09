@@ -80,11 +80,76 @@ public class Llvm {
 		}
 	}
 
-	// TODO : other types
+	// Type Bool
+	static public class BoolType extends Type {
+		public String toString() {
+			return "i1";
+		}
+	}
 
 	// LLVM IR Instructions
 	static public abstract class Instruction {
 		public abstract String toString();
+	}
+
+	static public class IfInstr extends Instruction {
+		Type type;
+		String labelThen;
+		String labelElse;
+		String cond;
+
+		public IfInstr(Type type, String cond, String labelThen, String labelElse) {
+			this.type = type;
+			this.labelThen = labelThen;
+			this.labelElse = labelElse;
+			this.cond = cond;
+		}
+
+		public String toString() {
+			return "br " + type + " " + cond + ", label " + "%" + labelThen + ", label " + "%" + labelElse + "\n";
+		}
+	}
+
+	static public class LabelName extends Instruction {
+		String labelName;
+
+		public LabelName(String labelName) {
+			this.labelName = labelName;
+		}
+
+		public String toString() {
+			return labelName + ":" + "\n";
+		}
+	}
+
+	static public class AppelLabel extends Instruction {
+		String labelName;
+
+		public AppelLabel(String labelName) {
+			this.labelName = labelName;
+		}
+
+		public String toString() {
+			return "br label %" + labelName + "\n";
+		}
+	}
+
+	static public class Equal extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
+
+		public Equal(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
+
+		public String toString() {
+			return lvalue + " = icmp eq " + type + " " + left + ", " + right + "\n";
+		}
 	}
 
 	static public class Add extends Instruction {

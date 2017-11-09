@@ -39,6 +39,7 @@ statements returns [ASD.Statement out]
 instructions returns [ASD.Instructions out]
 	: a=affect { $out = $a.out; } 
 	| r=retour { $out = $r.out; }
+	| i=ifinstr	{ $out = $i.out; }
 	;
 
 affect returns [ASD.Instructions out]
@@ -47,6 +48,19 @@ affect returns [ASD.Instructions out]
 	
 retour returns [ASD.Instructions out]
 	: RETURN e=expression { $out = new ASD.ReturnInstructions($e.out); }
+	;
+	
+ifinstr returns [ASD.Instructions out]
+	: {ASD.Expression ex = null; } 
+	IF c=condition
+	THEN th=expression
+	(ELSE el=expression { ex=$el.out; } )? 
+	FI
+	  { $out = new ASD.IfInstruction($c.out, $th.out, ex); }
+	;
+
+condition returns [ASD.Expression out]
+	: r=expression { $out = new ASD.CondExpression($r.out); }
 	;
 
 
