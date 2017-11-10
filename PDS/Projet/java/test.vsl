@@ -2,16 +2,16 @@
 INT x, b,c,d	
 x := 20
 WHILE x
-	DO
+	DO {
 	b:= b+2
 	x:=x-1
 	WHILE c
-		DO
+		DO{
 		d:=d+1
 		c:=c-1
-	DONE
+	}DONE
 	c:=5
-DONE
+}DONE
 
 RETURN d
 }

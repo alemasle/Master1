@@ -62,7 +62,9 @@ ifinstr returns [ASD.Instructions out]
 
 whileinstr returns [ASD.Instructions out]
 	:	WHILE c=condition
-		DO { ASD.depth ++; } b=bloc { ASD.depth --; } 
+		DO ACCOLADEG
+		{ ASD.depth ++; } b=bloc { ASD.depth --; } 
+		ACCOLADED
 		DONE
 	{ $out = new ASD.WhileInstruction($c.out, $b.out); }
 	;
