@@ -190,7 +190,7 @@ public class Llvm {
 		}
 
 		public String toString() {
-			return lvalue + " = add " + type + " " + left + ", " + right + "\n";
+			return Utils.indent(1) + lvalue + " = add " + type + " " + left + ", " + right + "\n";
 		}
 	}
 

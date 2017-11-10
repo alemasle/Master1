@@ -1,13 +1,18 @@
 {
-INT x, b
-
-x := 2
+INT x, b,c,d	
+x := 20
 WHILE x
 	DO
-	b:= b+1
+	b:= b+2
 	x:=x-1
+	WHILE c
+		DO
+		d:=d+1
+		c:=c-1
 	DONE
+	c:=5
+DONE
 
-RETURN b
+RETURN d
 }
 

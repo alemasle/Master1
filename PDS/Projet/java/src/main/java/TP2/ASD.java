@@ -217,6 +217,7 @@ public class ASD {
 			}
 
 		public RetInstructions toIR() throws TypeException {
+			Llvm.IR whileRet=new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Expression.RetExpression condRet = condExpr.toIR();
 			Bloc.RetBloc doRet = doBloc.toIR();
 
@@ -229,37 +230,41 @@ public class ASD {
 			ASD.pile.push(labelDo);
 			
 			//br while
-			
-			Llvm.Instruction labelNomloop = new Llvm.LabelName(labelWhile);
-			condRet.ir.appendCode(labelNomloop); 
-			
-			Llvm.Instruction whileinstruction = new Llvm.WhileInstr(new BoolType().toLlvmType(), condRet.result,labelWhile ,labelDo,labelDone);
-			condRet.ir.appendCode(whileinstruction);
-			
 			Llvm.Instruction labelRetloop = new Llvm.AppelLabel(labelWhile);
-			condRet.ir.appendCode(labelRetloop);
+			whileRet.appendCode(labelRetloop);
+			
+			//while :
+			Llvm.Instruction labelNomloop = new Llvm.LabelName(labelWhile);
+			whileRet.appendCode(labelNomloop); 
+			
+			whileRet.append(condRet.ir);
+			
 			
 			// le code de while
-
+			Llvm.Instruction whileinstruction = new Llvm.WhileInstr(new BoolType().toLlvmType(), condRet.result,labelWhile ,labelDo,labelDone);
+			whileRet.appendCode(whileinstruction);
+			
+			
+		
 
 			//do
 			Llvm.Instruction labelDoNom = new Llvm.LabelName(pile.pop());
-			condRet.ir.appendCode(labelDoNom);
+			whileRet.appendCode(labelDoNom);
 
 			//code du do
-			condRet.ir.append(doRet.ir);
+			whileRet.append(doRet.ir);
 
 			//br while
 			Llvm.Instruction labelDoRet = new Llvm.AppelLabel(pile.pop());
-			condRet.ir.appendCode(labelDoRet);
+			whileRet.appendCode(labelDoRet);
 			
 
 			//done
 			Llvm.Instruction labelDoneNom = new Llvm.LabelName(pile.pop());
-			condRet.ir.appendCode(labelDoneNom);
+			whileRet.appendCode(labelDoneNom);
 
 			// return the generated IR, plus the type of this expression
-			return new RetInstructions(condRet.ir);
+			return new RetInstructions(whileRet);
 		}
 	}
 	
