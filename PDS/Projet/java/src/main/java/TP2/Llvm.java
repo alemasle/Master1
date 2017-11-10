@@ -92,6 +92,29 @@ public class Llvm {
 		public abstract String toString();
 	}
 
+	static public class WhileInstr extends Instruction {
+		Type type;
+		String labelWhile;
+		String labelDo;
+		String labelDone;
+		String cond;
+
+		public WhileInstr(Type type, String cond, String labelWhile, String labelDo, String labelDone) {
+			this.type = type;
+			this.labelWhile = labelWhile;
+			this.labelDo = labelDo;
+			this.labelDone = labelDone;
+			this.cond = cond;
+		}
+		
+		//TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
+
+		public String toString() {
+			return Utils.indent(1) + "br " + type + " " + cond + ", label " + "%" + labelDo + ", label " + "%"
+					+ labelDone + "\n\n";
+		}
+	}
+
 	static public class IfInstr extends Instruction {
 		Type type;
 		String labelThen;

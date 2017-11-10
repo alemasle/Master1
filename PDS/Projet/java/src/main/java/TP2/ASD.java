@@ -201,6 +201,68 @@ public class ASD {
 		}
 	}
 
+	static public class WhileInstruction extends Instructions {
+		Expression condExpr;
+		Bloc doBloc;
+
+		public WhileInstruction(Expression condExpr, Bloc doBloc) {
+			this.condExpr = condExpr;
+			this.doBloc = doBloc;
+		
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return "(" + "While " + condExpr.pp() + "Do " + doBloc.pp()+ "Done )";
+			}
+
+		public RetInstructions toIR() throws TypeException {
+			Expression.RetExpression condRet = condExpr.toIR();
+			Bloc.RetBloc doRet = doBloc.toIR();
+
+			String labelWhile = Utils.newlab("while");
+			String labelDo = Utils.newlab("do");
+			String labelDone = Utils.newlab("done");
+
+			ASD.pile.push(labelDone);
+			ASD.pile.push(labelWhile);
+			ASD.pile.push(labelDo);
+			
+			//br while
+			
+			Llvm.Instruction labelNomloop = new Llvm.LabelName(labelWhile);
+			condRet.ir.appendCode(labelNomloop); 
+			
+			Llvm.Instruction whileinstruction = new Llvm.WhileInstr(new BoolType().toLlvmType(), condRet.result,labelWhile ,labelDo,labelDone);
+			condRet.ir.appendCode(whileinstruction);
+			
+			Llvm.Instruction labelRetloop = new Llvm.AppelLabel(labelWhile);
+			condRet.ir.appendCode(labelRetloop);
+			
+			// le code de while
+
+
+			//do
+			Llvm.Instruction labelDoNom = new Llvm.LabelName(pile.pop());
+			condRet.ir.appendCode(labelDoNom);
+
+			//code du do
+			condRet.ir.append(doRet.ir);
+
+			//br while
+			Llvm.Instruction labelDoRet = new Llvm.AppelLabel(pile.pop());
+			condRet.ir.appendCode(labelDoRet);
+			
+
+			//done
+			Llvm.Instruction labelDoneNom = new Llvm.LabelName(pile.pop());
+			condRet.ir.appendCode(labelDoneNom);
+
+			// return the generated IR, plus the type of this expression
+			return new RetInstructions(condRet.ir);
+		}
+	}
+	
 	static public class IfInstruction extends Instructions {
 		Expression condExpr;
 		Bloc thenBloc;

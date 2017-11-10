@@ -35,6 +35,9 @@ IF	:	'IF'	;
 THEN	:	'THEN'	;
 ELSE	:	'ELSE'	;
 FI	:	'FI'	;
+WHILE	:	'WHILE'	;
+DO	:	'DO'	;
+DONE	:	'DONE'	;
 
 // TODO : other keywords
 

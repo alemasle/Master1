@@ -1,25 +1,13 @@
 {
 INT x, b
 
-x := 1
-IF x*b
-THEN 
-	b:=20
-	x:=b
-	
-	IF x-10
-	THEN
-		INT y
-		y := 70
-		x := y
-	ELSE
-		x := 50
-	FI
-ELSE
-	x := 100
+x := 2
+WHILE x
+	DO
+	b:= b+1
+	x:=x-1
+	DONE
 
-FI
-
-RETURN x
+RETURN b
 }
 

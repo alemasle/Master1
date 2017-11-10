@@ -40,6 +40,7 @@ instructions returns [ASD.Instructions out]
 	: a=affect { $out = $a.out; } 
 	| r=retour { $out = $r.out; }
 	| i=ifinstr	{ $out = $i.out; }
+	| w=whileinstr	{ $out = $w.out; }
 	;
 
 affect returns [ASD.Instructions out]
@@ -57,6 +58,13 @@ ifinstr returns [ASD.Instructions out]
 	(ELSE { ASD.depth ++;} el=bloc { ASD.depth --;} { ex=$el.out; } )? 
 	FI
 	  { $out = new ASD.IfInstruction($c.out, $th.out, ex); }
+	;
+
+whileinstr returns [ASD.Instructions out]
+	:	WHILE c=condition
+		DO { ASD.depth ++; } b=bloc { ASD.depth --; } 
+		DONE
+	{ $out = new ASD.WhileInstruction($c.out, $b.out); }
 	;
 
 condition returns [ASD.Expression out]
