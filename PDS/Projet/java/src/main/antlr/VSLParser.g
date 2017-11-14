@@ -18,6 +18,7 @@ program returns [ASD.Program out]
     | b=bloc EOF { $out = new ASD.Program($b.out); }
     ;
 	
+	
 bloc returns [ASD.Bloc out]
     : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); ASD.Declaration decl = null;} 
     (d=declarations {decl = $d.out; })?
@@ -25,31 +26,38 @@ bloc returns [ASD.Bloc out]
       { $out = new ASD.Bloc(decl, ls); }
     ;
     
+    
 declarations returns [ASD.Declaration out]
 	: { List<ASD.DeclVar> lvar = new ArrayList<ASD.DeclVar>(); }
 	DECINT (d=declid { lvar.add($d.out); } (VIRGULE d=declid { lvar.add($d.out); } )* )
 	  { $out = new ASD.Declaration(lvar); }
 	;    
     
+    
 statements returns [ASD.Statement out]
 	: i=instructions { $out = new ASD.Statement($i.out); }
 	| e=expression { $out = new ASD.Statement($e.out); }
 	;
+	
 
 instructions returns [ASD.Instructions out]
 	: a=affect { $out = $a.out; } 
 	| r=retour { $out = $r.out; }
 	| i=ifinstr	{ $out = $i.out; }
 	| w=whileinstr	{ $out = $w.out; }
+	| p=print { $out = $p.out; }
 	;
+
 
 affect returns [ASD.Instructions out]
 	: i=identificateur AFFECT e=expression { $out = new ASD.AffectInstructions($i.out,$e.out); }
 	;
 	
+	
 retour returns [ASD.Instructions out]
 	: RETURN e=expression { $out = new ASD.ReturnInstructions($e.out); }
 	;
+	
 	
 ifinstr returns [ASD.Instructions out]
 	: {ASD.Bloc ex = null; } 
@@ -60,6 +68,7 @@ ifinstr returns [ASD.Instructions out]
 	  { $out = new ASD.IfInstruction($c.out, $th.out, ex); }
 	;
 
+
 whileinstr returns [ASD.Instructions out]
 	:	WHILE c=condition
 		DO ACCOLADEG
@@ -68,6 +77,26 @@ whileinstr returns [ASD.Instructions out]
 		DONE
 	{ $out = new ASD.WhileInstruction($c.out, $b.out); }
 	;
+	
+	
+print returns [ASD.Instructions out]
+	:  { List<ASD.Text> lt = new ArrayList<ASD.Text>(); } 
+	PRINT
+	( t=texte  {lt.add($t.out); } 
+	| exp=expressionstring  {lt.add($exp.out); }
+	)
+	 ( 
+	 ( VIRGULE exp=expressionstring {lt.add($exp.out); }  
+	 | VIRGULE t=texte {lt.add($t.out); } 
+	 )*
+	  { $out = new ASD.Print(lt); }
+	;
+
+
+expressionstring returns [ASD.Text out]
+	: e=expression { $out = new ASD.ExpressionToString($e.out); }
+	;
+
 
 condition returns [ASD.Expression out]
 	: r=expression { $out = new ASD.CondExpression($r.out); }
@@ -82,6 +111,7 @@ expression returns [ASD.Expression out]
 	| e=expression2 { $out = $e.out; }
     ;
 
+
 expression2 returns [ASD.Expression out]
 	: l=expression2 
 		( MULT r=factor  { $out = new ASD.MultExpression($l.out, $r.out); }
@@ -90,10 +120,12 @@ expression2 returns [ASD.Expression out]
 	| f=factor { $out = $f.out; }
 	;
 
+
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
     | LP e=expression RP { $out = $e.out; }
     ;
+
 
 primary returns [ASD.Expression out]
     : {boolean unitaire = true; }
@@ -102,10 +134,17 @@ primary returns [ASD.Expression out]
     | IDENT {$out = new ASD.exprIdent($IDENT.text); }
     ;
 
+
 declid returns [ASD.DeclVar out]
     : IDENT { $out = new ASD.DeclVar(new ASD.IntType(), $IDENT.text); }
     ;
+
     
 identificateur returns [ASD.IdentVar out]
 	: IDENT { $out = new ASD.IdentVar(new ASD.IntType(), $IDENT.text); }
+	;
+
+
+texte returns [ASD.Instruction out]
+	: TEXT { $out = new ASD.Text((new ASD.StringType(),$TEXT.text); }
 	;

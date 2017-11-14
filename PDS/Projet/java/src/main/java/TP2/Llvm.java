@@ -87,9 +87,47 @@ public class Llvm {
 		}
 	}
 
+	static public class StringType extends Type {
+		public String toString() {
+			return "i32";
+		}
+	}
+
 	// LLVM IR Instructions
 	static public abstract class Instruction {
 		public abstract String toString();
+	}
+
+	static public class PrintInstr extends Instruction {
+		Type type;
+		String str;
+
+		public PrintInstr(Type type, String str) {
+			this.type = type;
+			this.str = str;
+		}
+
+		// TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
+
+		public String toString() {
+			return Utils.indent(1) + "@print (" + type;
+		}
+	}
+
+	static public class Expr2String extends Instruction {
+		Type type;
+		String exp;
+
+		public Expr2String(Type type, String exp) {
+			this.type = type;
+			this.exp = exp;
+		}
+
+		// TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
+
+		public String toString() {
+			return Utils.indent(1) + "@print (" + type;
+		}
 	}
 
 	static public class WhileInstr extends Instruction {
@@ -106,8 +144,8 @@ public class Llvm {
 			this.labelDone = labelDone;
 			this.cond = cond;
 		}
-		
-		//TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
+
+		// TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
 
 		public String toString() {
 			return Utils.indent(1) + "br " + type + " " + cond + ", label " + "%" + labelDo + ", label " + "%"

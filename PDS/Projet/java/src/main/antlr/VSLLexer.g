@@ -23,6 +23,7 @@ LP    : '(' ; // Left parenthesis
 RP    : ')' ;
 ACCOLADEG	:	'{'	;
 ACCOLADED	:	'}'	;
+GUILLEMET	:	'"'	;
 PLUS      : '+'      ;
 SOUS      : '-'      ;
 MULT      : '*'      ;

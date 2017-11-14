@@ -2,6 +2,8 @@ package TP2;
 
 import java.util.*;
 
+import TP2.ASD.Expression.RetExpression;
+
 public class ASD {
 
 	static Boolean retour = false;
@@ -201,6 +203,70 @@ public class ASD {
 		}
 	}
 
+	static public class Print extends Instructions {
+		Expression expr;
+		String str;
+
+		public Print(Expression expr, String str) {
+			this.expr = expr;
+			this.str = str;
+		}
+
+		// Pretty-printer
+		public String pp() {
+			return "( PRINT " + expr + str + ")";
+		}
+
+		public RetInstructions toIR() throws TypeException {
+			Expression.RetExpression exprRet = expr.toIR();
+
+			// Llvm.Instruction printinstruction = new Llvm.PrintInstr();
+			// exprRet.ir.appendCode(printinstruction);
+
+			// return the generated IR, plus the type of this expression
+			return new RetInstructions(exprRet.ir);
+		}
+	}
+
+	static public abstract class Strings {
+		public abstract String pp();
+
+		public abstract RetStrings toIR() throws TypeException;
+
+		static public class RetStrings {
+			// The LLVM IR:
+			public Llvm.IR ir;
+
+			public RetStrings(Llvm.IR ir) {
+				this.ir = ir;
+			}
+		}
+	}
+
+	static public class ExpressionToString extends Strings {
+		Expression exp;
+
+		public ExpressionToString(Expression exp) {
+			this.exp = exp;
+		}
+
+		public String pp() {
+			return "" + exp;
+		}
+
+		public RetStrings toIR() {
+			RetExpression exprRet = exp.toIR();
+
+			Llvm.IR textIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Llvm.Instruction text = new Llvm.Expr2String(new ASD.StringType().toLlvmType(), exprRet.result);
+
+			textIR.appendCode(text);
+
+			return new RetStrings(textIR);
+		}
+	}
+
 	static public class WhileInstruction extends Instructions {
 		Expression condExpr;
 		Bloc doBloc;
@@ -208,16 +274,16 @@ public class ASD {
 		public WhileInstruction(Expression condExpr, Bloc doBloc) {
 			this.condExpr = condExpr;
 			this.doBloc = doBloc;
-		
+
 		}
 
 		// Pretty-printer
 		public String pp() {
-			return "(" + "While " + condExpr.pp() + "Do " + doBloc.pp()+ "Done )";
-			}
+			return "(" + "While " + condExpr.pp() + "Do " + doBloc.pp() + "Done )";
+		}
 
 		public RetInstructions toIR() throws TypeException {
-			Llvm.IR whileRet=new Llvm.IR(Llvm.empty(), Llvm.empty());
+			Llvm.IR whileRet = new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Expression.RetExpression condRet = condExpr.toIR();
 			Bloc.RetBloc doRet = doBloc.toIR();
 
@@ -228,38 +294,34 @@ public class ASD {
 			ASD.pile.push(labelDone);
 			ASD.pile.push(labelWhile);
 			ASD.pile.push(labelDo);
-			
-			//br while
+
+			// br while
 			Llvm.Instruction labelRetloop = new Llvm.AppelLabel(labelWhile);
 			whileRet.appendCode(labelRetloop);
-			
-			//while :
-			Llvm.Instruction labelNomloop = new Llvm.LabelName(labelWhile);
-			whileRet.appendCode(labelNomloop); 
-			
-			whileRet.append(condRet.ir);
-			
-			
-			// le code de while
-			Llvm.Instruction whileinstruction = new Llvm.WhileInstr(new BoolType().toLlvmType(), condRet.result,labelWhile ,labelDo,labelDone);
-			whileRet.appendCode(whileinstruction);
-			
-			
-		
 
-			//do
+			// while :
+			Llvm.Instruction labelNomloop = new Llvm.LabelName(labelWhile);
+			whileRet.appendCode(labelNomloop);
+
+			whileRet.append(condRet.ir);
+
+			// le code de while
+			Llvm.Instruction whileinstruction = new Llvm.WhileInstr(new BoolType().toLlvmType(), condRet.result,
+					labelWhile, labelDo, labelDone);
+			whileRet.appendCode(whileinstruction);
+
+			// do
 			Llvm.Instruction labelDoNom = new Llvm.LabelName(pile.pop());
 			whileRet.appendCode(labelDoNom);
 
-			//code du do
+			// code du do
 			whileRet.append(doRet.ir);
 
-			//br while
+			// br while
 			Llvm.Instruction labelDoRet = new Llvm.AppelLabel(pile.pop());
 			whileRet.appendCode(labelDoRet);
-			
 
-			//done
+			// done
 			Llvm.Instruction labelDoneNom = new Llvm.LabelName(pile.pop());
 			whileRet.appendCode(labelDoneNom);
 
@@ -267,7 +329,7 @@ public class ASD {
 			return new RetInstructions(whileRet);
 		}
 	}
-	
+
 	static public class IfInstruction extends Instructions {
 		Expression condExpr;
 		Bloc thenBloc;
@@ -615,6 +677,20 @@ public class ASD {
 
 		public Llvm.Type toLlvmType() {
 			return new Llvm.BoolType();
+		}
+	}
+
+	static class StringType extends Type {
+		public String pp() {
+			return "String";
+		}
+
+		public boolean equals(Object obj) {
+			return obj instanceof StringType;
+		}
+
+		public Llvm.Type toLlvmType() {
+			return new Llvm.StringType();
 		}
 	}
 
