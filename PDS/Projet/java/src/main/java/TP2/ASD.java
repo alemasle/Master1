@@ -204,27 +204,34 @@ public class ASD {
 	}
 
 	static public class Print extends Instructions {
-		Expression expr;
-		String str;
+		List<Strings> lt;
 
-		public Print(Expression expr, String str) {
-			this.expr = expr;
-			this.str = str;
+		public Print(List<Strings> lt) {
+			this.lt = lt;
 		}
 
 		// Pretty-printer
 		public String pp() {
-			return "( PRINT " + expr + str + ")";
+			String str = "";
+			for (Strings string : lt) {
+				str = str + string.pp() + " ";
+			}
+			return str;
 		}
 
 		public RetInstructions toIR() throws TypeException {
-			Expression.RetExpression exprRet = expr.toIR();
 
-			// Llvm.Instruction printinstruction = new Llvm.PrintInstr();
-			// exprRet.ir.appendCode(printinstruction);
+			Llvm.IR printIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
-			// return the generated IR, plus the type of this expression
-			return new RetInstructions(exprRet.ir);
+			String result = "";
+
+			for (Strings s : lt) {
+
+				result += type + s.toIR().result;
+
+			}
+
+			return new RetInstructions(printIR);
 		}
 	}
 
@@ -236,9 +243,13 @@ public class ASD {
 		static public class RetStrings {
 			// The LLVM IR:
 			public Llvm.IR ir;
+			public String result;
+			public Type type;
 
-			public RetStrings(Llvm.IR ir) {
+			public RetStrings(Llvm.IR ir, Type type, String result) {
 				this.ir = ir;
+				this.result = result;
+				this.type = type;
 			}
 		}
 	}
@@ -254,8 +265,8 @@ public class ASD {
 			return "" + exp;
 		}
 
-		public RetStrings toIR() {
-			RetExpression exprRet = exp.toIR();
+		public RetStrings toIR() throws TypeException {
+			Expression.RetExpression exprRet = exp.toIR();
 
 			Llvm.IR textIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
@@ -263,7 +274,7 @@ public class ASD {
 
 			textIR.appendCode(text);
 
-			return new RetStrings(textIR);
+			return new RetStrings(textIR, exprRet.result);
 		}
 	}
 

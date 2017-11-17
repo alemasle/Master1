@@ -107,10 +107,8 @@ public class Llvm {
 			this.str = str;
 		}
 
-		// TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
-
 		public String toString() {
-			return Utils.indent(1) + "@print (" + type;
+			return Utils.indent(1) + "@call i32 (i8*, ...)* @printf(i8* " + str + ")";
 		}
 	}
 
@@ -123,10 +121,8 @@ public class Llvm {
 			this.exp = exp;
 		}
 
-		// TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
-
 		public String toString() {
-			return Utils.indent(1) + "@print (" + type;
+			return type + " " + exp;
 		}
 	}
 
