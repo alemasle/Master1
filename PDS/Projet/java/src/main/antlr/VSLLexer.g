@@ -39,10 +39,12 @@ FI	:	'FI'	;
 WHILE	:	'WHILE'	;
 DO	:	'DO'	;
 DONE	:	'DONE'	;
+PRINT	:	'PRINT'	;
+PTVIRG	:	';'	;
 
 // TODO : other keywords
 
 // other tokens (no conflict with keywords in VSL)
 IDENT   : LETTER (LETTER|DIGIT)*;
-TEXT    : '"' (ASCII)* '"' { setText(getText().substring(1, getText().length() - 1)); };
+TEXT    : (ASCII)* { setText(getText().substring(1, getText().length() - 1)); };
 INTEGER : (DIGIT)+ ;

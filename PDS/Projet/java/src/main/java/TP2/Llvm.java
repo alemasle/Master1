@@ -99,30 +99,14 @@ public class Llvm {
 	}
 
 	static public class PrintInstr extends Instruction {
-		Type type;
 		String str;
 
-		public PrintInstr(Type type, String str) {
-			this.type = type;
+		public PrintInstr(String str) {
 			this.str = str;
 		}
 
 		public String toString() {
-			return Utils.indent(1) + "@call i32 (i8*, ...)* @printf(i8* " + str + ")";
-		}
-	}
-
-	static public class Expr2String extends Instruction {
-		Type type;
-		String exp;
-
-		public Expr2String(Type type, String exp) {
-			this.type = type;
-			this.exp = exp;
-		}
-
-		public String toString() {
-			return type + " " + exp;
+			return Utils.indent(1) + "@call i32 (i8*, ...)* @printf(" + str + ")";
 		}
 	}
 

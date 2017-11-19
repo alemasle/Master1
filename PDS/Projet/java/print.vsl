@@ -1,0 +1,4 @@
+{
+PRINT "TEST";
+RETURN 0
+}

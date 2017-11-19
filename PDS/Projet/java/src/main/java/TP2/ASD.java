@@ -2,8 +2,6 @@ package TP2;
 
 import java.util.*;
 
-import TP2.ASD.Expression.RetExpression;
-
 public class ASD {
 
 	static Boolean retour = false;
@@ -225,11 +223,17 @@ public class ASD {
 
 			String result = "";
 
-			for (Strings s : lt) {
+			for (int i = 0; i < lt.size() - 1; i++) {
 
-				result += type + s.toIR().result;
+				result += lt.get(i).toString() + ", ";
 
 			}
+
+			result += lt.get(lt.size() - 1);
+
+			Llvm.Instruction printInstr = new Llvm.PrintInstr(result);
+
+			printIR.appendCode(printInstr);
 
 			return new RetInstructions(printIR);
 		}
@@ -238,20 +242,8 @@ public class ASD {
 	static public abstract class Strings {
 		public abstract String pp();
 
-		public abstract RetStrings toIR() throws TypeException;
+		public abstract String toString();
 
-		static public class RetStrings {
-			// The LLVM IR:
-			public Llvm.IR ir;
-			public String result;
-			public Type type;
-
-			public RetStrings(Llvm.IR ir, Type type, String result) {
-				this.ir = ir;
-				this.result = result;
-				this.type = type;
-			}
-		}
 	}
 
 	static public class ExpressionToString extends Strings {
@@ -265,17 +257,58 @@ public class ASD {
 			return "" + exp;
 		}
 
-		public RetStrings toIR() throws TypeException {
-			Expression.RetExpression exprRet = exp.toIR();
+		@Override
+		public String toString() {
 
-			Llvm.IR textIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+			String str = "";
+			Expression.RetExpression ret;
 
-			Llvm.Instruction text = new Llvm.Expr2String(new ASD.StringType().toLlvmType(), exprRet.result);
+			try {
 
-			textIR.appendCode(text);
+				ret = exp.toIR();
+				str = ret.type + " " + ret.result;
 
-			return new RetStrings(textIR, exprRet.result);
+			} catch (TypeException e) {
+				System.out.println("Erreur de ExpressionToString");
+				e.printStackTrace();
+			}
+
+			return str;
 		}
+
+		// public RetStrings toIR() throws TypeException {
+		// Expression.RetExpression exprRet = exp.toIR();
+		//
+		// Llvm.IR textIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+		//
+		// Llvm.Instruction text = new Llvm.Expr2String(exprRet.type.toLlvmType(),
+		// exprRet.result);
+		//
+		// textIR.appendCode(text);
+		//
+		// return new RetStrings(textIR, exprRet.result);
+		// }
+	}
+
+	static public class Text extends Strings {
+		Type type;
+		String str;
+
+		public Text(Type type, String str) {
+			this.type = type;
+			this.str = str;
+		}
+
+		@Override
+		public String pp() {
+			return str;
+		}
+
+		@Override
+		public String toString() {
+			return "i8* " + str;
+		}
+
 	}
 
 	static public class WhileInstruction extends Instructions {

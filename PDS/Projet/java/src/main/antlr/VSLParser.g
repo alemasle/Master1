@@ -80,20 +80,19 @@ whileinstr returns [ASD.Instructions out]
 	
 	
 print returns [ASD.Instructions out]
-	:  { List<ASD.Text> lt = new ArrayList<ASD.Text>(); } 
+	:  { List<ASD.Strings> lt = new ArrayList<ASD.Strings>(); } 
 	PRINT
 	( t=texte  {lt.add($t.out); } 
 	| exp=expressionstring  {lt.add($exp.out); }
-	)
-	 ( 
-	 ( VIRGULE exp=expressionstring {lt.add($exp.out); }  
-	 | VIRGULE t=texte {lt.add($t.out); } 
-	 )*
+	) 
+	( VIRGULE exp=expressionstring {lt.add($exp.out); }  
+	| VIRGULE t=texte {lt.add($t.out); } 
+	)*
 	  { $out = new ASD.Print(lt); }
 	;
 
 
-expressionstring returns [ASD.Text out]
+expressionstring returns [ASD.Strings out]
 	: e=expression { $out = new ASD.ExpressionToString($e.out); }
 	;
 
@@ -145,6 +144,6 @@ identificateur returns [ASD.IdentVar out]
 	;
 
 
-texte returns [ASD.Instruction out]
-	: TEXT { $out = new ASD.Text((new ASD.StringType(),$TEXT.text); }
+texte returns [ASD.Strings out]
+	: TEXT { $out = new ASD.Text(new ASD.StringType(),$TEXT.text); }
 	;
