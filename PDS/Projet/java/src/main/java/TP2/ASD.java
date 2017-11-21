@@ -2,6 +2,8 @@ package TP2;
 
 import java.util.*;
 
+import TP2.SymbolTable.VariableSymbol;
+
 public class ASD {
 
 	static Boolean retour = false;
@@ -25,12 +27,14 @@ public class ASD {
 		// IR generation
 		public Llvm.IR toIR() throws TypeException {
 
+			SymbolTable ts = new SymbolTable();
+
 			Llvm.IR prg = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
 			Llvm.Instruction labelEntry = new Llvm.LabelName("entry");
 			prg.appendCode(labelEntry);
 
-			Bloc.RetBloc retBloc = bloc.toIR();
+			Bloc.RetBloc retBloc = bloc.toIR(ts);
 
 			if (!ASD.retour) {
 				throw new TypeException("RETURN attendu dans la fonction");
@@ -71,16 +75,18 @@ public class ASD {
 			}
 		}
 
-		public RetBloc toIR() throws TypeException {
+		public RetBloc toIR(SymbolTable ts) throws TypeException {
 			Llvm.IR blocIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
+			SymbolTable tsF = new SymbolTable(ts);
+
 			if (dec != null) {
-				Declaration.RetDeclaration retDecl = dec.toIR();
+				Declaration.RetDeclaration retDecl = dec.toIR(tsF);
 				blocIR.append(retDecl.ir);
 			}
 
 			for (Statement s : ls) {
-				Statement.RetStatement retStat = s.toIR();
+				Statement.RetStatement retStat = s.toIR(ts);
 				blocIR.append(retStat.ir);
 			}
 
@@ -113,12 +119,12 @@ public class ASD {
 			return str;
 		}
 
-		public RetDeclaration toIR() throws TypeException {
+		public RetDeclaration toIR(SymbolTable ts) throws TypeException {
 			Llvm.IR declIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
 			for (DeclVar declVar : lVar) {
 
-				DeclVar.RetIdentificateur retDeclVar = declVar.toIR();
+				DeclVar.RetIdentificateur retDeclVar = declVar.toIR(ts);
 
 				declIR.append(retDeclVar.ir);
 
@@ -132,7 +138,7 @@ public class ASD {
 	static public abstract class Stat {
 		public abstract String pp();
 
-		public abstract RetStatement toIR() throws TypeException;
+		public abstract RetStatement toIR(SymbolTable ts) throws TypeException;
 
 		static public class RetStatement {
 			// The LLVM IR:
@@ -171,15 +177,15 @@ public class ASD {
 				return "";
 		}
 
-		public RetStatement toIR() throws TypeException {
+		public RetStatement toIR(SymbolTable ts) throws TypeException {
 
 			if (i != null) {
 
-				Instructions.RetInstructions instrRet = i.toIR();
+				Instructions.RetInstructions instrRet = i.toIR(ts);
 				return new RetStatement(instrRet.ir, null, null);
 
 			} else if (e != null) {
-				Expression.RetExpression exprRet = e.toIR();
+				Expression.RetExpression exprRet = e.toIR(ts);
 				return new RetStatement(exprRet.ir, exprRet.type, exprRet.result);
 			}
 			return null;
@@ -189,7 +195,7 @@ public class ASD {
 	static public abstract class Instructions {
 		public abstract String pp();
 
-		public abstract RetInstructions toIR() throws TypeException;
+		public abstract RetInstructions toIR(SymbolTable ts) throws TypeException;
 
 		static public class RetInstructions {
 			// The LLVM IR:
@@ -216,10 +222,10 @@ public class ASD {
 			return "(" + "While " + condExpr.pp() + "Do " + doBloc.pp() + "Done )";
 		}
 
-		public RetInstructions toIR() throws TypeException {
+		public RetInstructions toIR(SymbolTable ts) throws TypeException {
 			Llvm.IR whileRet = new Llvm.IR(Llvm.empty(), Llvm.empty());
-			Expression.RetExpression condRet = condExpr.toIR();
-			Bloc.RetBloc doRet = doBloc.toIR();
+			Expression.RetExpression condRet = condExpr.toIR(ts);
+			Bloc.RetBloc doRet = doBloc.toIR(ts);
 
 			String labelWhile = Utils.newlab("while");
 			String labelDo = Utils.newlab("do");
@@ -286,9 +292,9 @@ public class ASD {
 			return str;
 		}
 
-		public RetInstructions toIR() throws TypeException {
-			Expression.RetExpression condRet = condExpr.toIR();
-			Bloc.RetBloc thenRet = thenBloc.toIR();
+		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+			Expression.RetExpression condRet = condExpr.toIR(ts);
+			Bloc.RetBloc thenRet = thenBloc.toIR(ts);
 
 			String labelThen = Utils.newlab("then");
 			String labelElse = null;
@@ -324,7 +330,7 @@ public class ASD {
 
 			// else
 			if (elseBloc != null) {
-				Bloc.RetBloc elseRet = elseBloc.toIR();
+				Bloc.RetBloc elseRet = elseBloc.toIR(ts);
 				Llvm.Instruction labelElseNom = new Llvm.LabelName(pile.pop());
 				condRet.ir.appendCode(labelElseNom);
 
@@ -357,9 +363,9 @@ public class ASD {
 			return "(" + ident.pp() + " := " + expr.pp() + ")";
 		}
 
-		public RetInstructions toIR() throws TypeException {
-			Identificateur.RetIdentificateur identRet = ident.toIR();
-			Expression.RetExpression exprRet = expr.toIR();
+		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+			Identificateur.RetIdentificateur identRet = ident.toIR(ts);
+			Expression.RetExpression exprRet = expr.toIR(ts);
 
 			// We check if the types mismatches
 			if (!identRet.type.equals(exprRet.type)) {
@@ -393,8 +399,9 @@ public class ASD {
 			return "(" + " return " + expr.pp() + " )";
 		}
 
-		public RetInstructions toIR() throws TypeException {
-			Expression.RetExpression exprRet = expr.toIR();
+		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+
+			Expression.RetExpression exprRet = expr.toIR(ts);
 
 			Llvm.Instruction retour = new Llvm.Return(exprRet.type.toLlvmType(), exprRet.result);
 
@@ -413,7 +420,7 @@ public class ASD {
 	static public abstract class Identificateur {
 		public abstract String pp();
 
-		public abstract RetIdentificateur toIR() throws TypeException;
+		public abstract RetIdentificateur toIR(SymbolTable ts) throws TypeException;
 
 		static public class RetIdentificateur {
 			// The LLVM IR:
@@ -434,6 +441,7 @@ public class ASD {
 	static public class DeclVar extends Identificateur {
 		Type type;
 		String ident;
+		SymbolTable.VariableSymbol vs;
 
 		public DeclVar(Type type, String ident) {
 			this.type = type;
@@ -444,7 +452,13 @@ public class ASD {
 			return "" + ident;
 		}
 
-		public RetIdentificateur toIR() {
+		public RetIdentificateur toIR(SymbolTable ts) throws TypeException {
+			vs = new VariableSymbol(type, ident);
+
+			if (!ts.add(vs)) {
+				throw new TypeException(ident + " est deja definie.");
+			}
+
 			Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
 			Llvm.Instruction cons = new Llvm.DeclVar(type.toLlvmType(), ident);
@@ -468,7 +482,12 @@ public class ASD {
 			return "" + ident;
 		}
 
-		public RetIdentificateur toIR() {
+		public RetIdentificateur toIR(SymbolTable ts) throws TypeException {
+
+			if (ts.lookup(ident) == null) {
+				throw new TypeException(ident + " non declaree");
+			}
+
 			Llvm.IR constIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
 			Llvm.Instruction cons = new Llvm.Var(type.toLlvmType(), ident);
@@ -479,15 +498,15 @@ public class ASD {
 		}
 	}
 
-	/** All toIR methods returns the IR, plus extra information (synthesized
-	* attributes)
-	*  They can take extra arguments (inherited attributes)
-	*/
+	/**
+	 * All toIR methods returns the IR, plus extra information (synthesized
+	 * attributes) They can take extra arguments (inherited attributes)
+	 */
 
 	static public abstract class Expression {
 		public abstract String pp();
 
-		public abstract RetExpression toIR() throws TypeException;
+		public abstract RetExpression toIR(SymbolTable ts) throws TypeException;
 
 		// Object returned by toIR on expressions, with IR + synthesized
 		// attributes
@@ -519,9 +538,9 @@ public class ASD {
 			return "( " + expr + " )";
 		}
 
-		public RetExpression toIR() throws TypeException {
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
 
-			RetExpression exprRet = expr.toIR();
+			RetExpression exprRet = expr.toIR(ts);
 
 			String result = Utils.newtmp();
 
@@ -546,7 +565,11 @@ public class ASD {
 			return "( " + ident + " )";
 		}
 
-		public RetExpression toIR() throws TypeException {
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
+
+			if (ts.lookup(ident) == null) {
+				throw new TypeException(ident + " non declaree");
+			}
 
 			Llvm.IR exprIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
@@ -573,7 +596,7 @@ public class ASD {
 			return "" + value;
 		}
 
-		public RetExpression toIR() {
+		public RetExpression toIR(SymbolTable ts) {
 			// Here we simply return an empty IR
 			// the `result' of this expression is the integer itself (as string)
 			return new RetExpression(new Llvm.IR(Llvm.empty(), Llvm.empty()), new IntType(), "" + value);
@@ -614,6 +637,7 @@ public class ASD {
 			return new Llvm.BoolType();
 		}
 	}
+
 	// Concrete class for Expression: add case
 	static public class AddExpression extends Expression {
 
@@ -631,9 +655,9 @@ public class ASD {
 		}
 
 		// IR generation
-		public RetExpression toIR() throws TypeException {
-			RetExpression leftRet = left.toIR();
-			RetExpression rightRet = right.toIR();
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
+			RetExpression leftRet = left.toIR(ts);
+			RetExpression rightRet = right.toIR(ts);
 			// We check if the types mismatches
 			if (!leftRet.type.equals(rightRet.type)) {
 				throw new TypeException("type mismatch: have " + leftRet.type + " and " + rightRet.type);
@@ -673,9 +697,9 @@ public class ASD {
 		}
 
 		// IR generation
-		public RetExpression toIR() throws TypeException {
-			RetExpression leftRet = left.toIR();
-			RetExpression rightRet = right.toIR();
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
+			RetExpression leftRet = left.toIR(ts);
+			RetExpression rightRet = right.toIR(ts);
 
 			// We check if the types mismatches
 			if (!leftRet.type.equals(rightRet.type)) {
@@ -716,9 +740,9 @@ public class ASD {
 		}
 
 		// IR generation
-		public RetExpression toIR() throws TypeException {
-			RetExpression leftRet = left.toIR();
-			RetExpression rightRet = right.toIR();
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
+			RetExpression leftRet = left.toIR(ts);
+			RetExpression rightRet = right.toIR(ts);
 
 			// We check if the types mismatches
 			if (!leftRet.type.equals(rightRet.type)) {
@@ -759,9 +783,9 @@ public class ASD {
 		}
 
 		// IR generation
-		public RetExpression toIR() throws TypeException {
-			RetExpression leftRet = left.toIR();
-			RetExpression rightRet = right.toIR();
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
+			RetExpression leftRet = left.toIR(ts);
+			RetExpression rightRet = right.toIR(ts);
 
 			// We check if the types mismatches
 			if (!leftRet.type.equals(rightRet.type)) {
