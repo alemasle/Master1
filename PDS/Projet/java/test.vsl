@@ -1,4 +1,5 @@
 {
+
 INT x, b,c,d	
 x := 20
 WHILE x
@@ -19,4 +20,5 @@ WHILE x
 DONE
 
 RETURN d
+
 }

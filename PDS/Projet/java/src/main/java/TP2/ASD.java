@@ -201,116 +201,6 @@ public class ASD {
 		}
 	}
 
-	static public class Print extends Instructions {
-		List<Strings> lt;
-
-		public Print(List<Strings> lt) {
-			this.lt = lt;
-		}
-
-		// Pretty-printer
-		public String pp() {
-			String str = "";
-			for (Strings string : lt) {
-				str = str + string.pp() + " ";
-			}
-			return str;
-		}
-
-		public RetInstructions toIR() throws TypeException {
-
-			Llvm.IR printIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-
-			String result = "";
-
-			for (int i = 0; i < lt.size() - 1; i++) {
-
-				result += lt.get(i).toString() + ", ";
-
-			}
-
-			result += lt.get(lt.size() - 1);
-
-			Llvm.Instruction printInstr = new Llvm.PrintInstr(result);
-
-			printIR.appendCode(printInstr);
-
-			return new RetInstructions(printIR);
-		}
-	}
-
-	static public abstract class Strings {
-		public abstract String pp();
-
-		public abstract String toString();
-
-	}
-
-	static public class ExpressionToString extends Strings {
-		Expression exp;
-
-		public ExpressionToString(Expression exp) {
-			this.exp = exp;
-		}
-
-		public String pp() {
-			return "" + exp;
-		}
-
-		@Override
-		public String toString() {
-
-			String str = "";
-			Expression.RetExpression ret;
-
-			try {
-
-				ret = exp.toIR();
-				str = ret.type + " " + ret.result;
-
-			} catch (TypeException e) {
-				System.out.println("Erreur de ExpressionToString");
-				e.printStackTrace();
-			}
-
-			return str;
-		}
-
-		// public RetStrings toIR() throws TypeException {
-		// Expression.RetExpression exprRet = exp.toIR();
-		//
-		// Llvm.IR textIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-		//
-		// Llvm.Instruction text = new Llvm.Expr2String(exprRet.type.toLlvmType(),
-		// exprRet.result);
-		//
-		// textIR.appendCode(text);
-		//
-		// return new RetStrings(textIR, exprRet.result);
-		// }
-	}
-
-	static public class Text extends Strings {
-		Type type;
-		String str;
-
-		public Text(Type type, String str) {
-			this.type = type;
-			this.str = str;
-		}
-
-		@Override
-		public String pp() {
-			return str;
-		}
-
-		@Override
-		public String toString() {
-			return "i8* " + str;
-		}
-
-	}
-
 	static public class WhileInstruction extends Instructions {
 		Expression condExpr;
 		Bloc doBloc;
@@ -589,9 +479,10 @@ public class ASD {
 		}
 	}
 
-	// All toIR methods returns the IR, plus extra information (synthesized
-	// attributes)
-	// They can take extra arguments (inherited attributes)
+	/** All toIR methods returns the IR, plus extra information (synthesized
+	* attributes)
+	*  They can take extra arguments (inherited attributes)
+	*/
 
 	static public abstract class Expression {
 		public abstract String pp();
@@ -723,21 +614,6 @@ public class ASD {
 			return new Llvm.BoolType();
 		}
 	}
-
-	static class StringType extends Type {
-		public String pp() {
-			return "String";
-		}
-
-		public boolean equals(Object obj) {
-			return obj instanceof StringType;
-		}
-
-		public Llvm.Type toLlvmType() {
-			return new Llvm.StringType();
-		}
-	}
-
 	// Concrete class for Expression: add case
 	static public class AddExpression extends Expression {
 
