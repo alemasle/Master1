@@ -14,9 +14,30 @@ options {
 
 
 program returns [ASD.Program out]
-    : ACCOLADEG b=bloc ACCOLADED EOF { $out = new ASD.Program($b.out); }
-    | b=bloc EOF { $out = new ASD.Program($b.out); }
+	:{List <ASD.Fonction> lfproto = new ArrayList<ASD.Fonction>();
+	  List <ASD.Fonction> lfunc = new ArrayList<ASD.Fonction>(); } 
+	
+	( PROTO ((INT|VOID) name=FUNC LP lp=param RP c=corps { ASD.Fonction protoF = new ASD.Fonction( TYPE ,$name.text, $lp, $c) ;} )*
+	
+	( (INT|VOID) MAIN LP lp=params RP f=fonction { ASD.Fonction m = new ASD.Fonction($lp.out); })
+	
+	( ((INT|VOID) FUNC LP lp=params RP f=fonction {lfunc.add($f.out)}) *
+	
+ 	 {$out = new ASD.Program(lfproto, m, lfunc); }
+	;
+
+
+params returns [ASD.Param out]
+	:{List <ASD.Param> lp = new ArrayList<ASD.Param>();}
+		(p=params {lp.add($p.out)})?
+	 {$out = new ASD.Param(lp); }
+	;
+
+corps returns [ASD.Fonction out]
+    : ACCOLADEG b=bloc ACCOLADED EOF { $out = new ASD.Fonction($b.out); }
+    | b=bloc EOF { $out = new ASD.Fonction($b.out); }
     ;
+	
 	
 bloc returns [ASD.Bloc out]
     : { List<ASD.Statement> ls = new ArrayList<ASD.Statement>(); ASD.Declaration decl = null;} 
@@ -25,16 +46,19 @@ bloc returns [ASD.Bloc out]
       { $out = new ASD.Bloc(decl, ls); }
     ;
     
+    
 declarations returns [ASD.Declaration out]
 	: { List<ASD.DeclVar> lvar = new ArrayList<ASD.DeclVar>(); }
 	DECINT (d=declid { lvar.add($d.out); } (VIRGULE d=declid { lvar.add($d.out); } )* )
 	  { $out = new ASD.Declaration(lvar); }
 	;    
     
+    
 statements returns [ASD.Statement out]
 	: i=instructions { $out = new ASD.Statement($i.out); }
 	| e=expression { $out = new ASD.Statement($e.out); }
 	;
+
 
 instructions returns [ASD.Instructions out]
 	: a=affect { $out = $a.out; } 
@@ -43,13 +67,16 @@ instructions returns [ASD.Instructions out]
 	| w=whileinstr	{ $out = $w.out; }
 	;
 
+
 affect returns [ASD.Instructions out]
 	: i=identificateur AFFECT e=expression { $out = new ASD.AffectInstructions($i.out,$e.out); }
 	;
 	
+	
 retour returns [ASD.Instructions out]
 	: RETURN e=expression { $out = new ASD.ReturnInstructions($e.out); }
 	;
+	
 	
 ifinstr returns [ASD.Instructions out]
 	: {ASD.Bloc ex = null; } 
@@ -60,6 +87,7 @@ ifinstr returns [ASD.Instructions out]
 	  { $out = new ASD.IfInstruction($c.out, $th.out, ex); }
 	;
 
+
 whileinstr returns [ASD.Instructions out]
 	:	WHILE c=condition
 		DO ACCOLADEG
@@ -68,6 +96,7 @@ whileinstr returns [ASD.Instructions out]
 		DONE
 	{ $out = new ASD.WhileInstruction($c.out, $b.out); }
 	;
+
 
 condition returns [ASD.Expression out]
 	: r=expression { $out = new ASD.CondExpression($r.out); }
@@ -81,6 +110,7 @@ expression returns [ASD.Expression out]
 		)
 	| e=expression2 { $out = $e.out; }
     ;
+    
 
 expression2 returns [ASD.Expression out]
 	: l=expression2 
@@ -90,10 +120,12 @@ expression2 returns [ASD.Expression out]
 	| f=factor { $out = $f.out; }
 	;
 
+
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
     | LP e=expression RP { $out = $e.out; }
     ;
+    
 
 primary returns [ASD.Expression out]
     : {boolean unitaire = true; }
@@ -102,10 +134,14 @@ primary returns [ASD.Expression out]
     | IDENT {$out = new ASD.exprIdent($IDENT.text); }
     ;
 
+
 declid returns [ASD.DeclVar out]
     : IDENT { $out = new ASD.DeclVar(new ASD.IntType(), $IDENT.text); }
     ;
     
+    
 identificateur returns [ASD.IdentVar out]
 	: IDENT { $out = new ASD.IdentVar(new ASD.IntType(), $IDENT.text); }
 	;
+	
+	

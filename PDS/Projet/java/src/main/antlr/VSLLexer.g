@@ -38,6 +38,10 @@ FI	:	'FI'	;
 WHILE	:	'WHILE'	;
 DO	:	'DO'	;
 DONE	:	'DONE'	;
+PROTO	:	'PROTO'	;
+FUNC	:	IDENT	;
+MAIN	:	'MAIN'	;
+VOID	:	'VOID'	;
 
 // TODO : other keywords
 
