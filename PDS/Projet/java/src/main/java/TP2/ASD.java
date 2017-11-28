@@ -86,7 +86,7 @@ public class ASD {
 			}
 
 			for (Statement s : ls) {
-				Statement.RetStatement retStat = s.toIR(ts);
+				Statement.RetStatement retStat = s.toIR(tsF);
 				blocIR.append(retStat.ir);
 			}
 
