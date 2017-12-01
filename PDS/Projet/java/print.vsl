@@ -1,4 +1,8 @@
-{
-PRINT "TEST";
-RETURN 0
+FUNC INT MAIN(){
+
+INT x
+
+x := 1 + 2
+
+RETURN x
 }

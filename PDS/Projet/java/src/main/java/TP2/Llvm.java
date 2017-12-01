@@ -50,13 +50,13 @@ public class Llvm {
 
 			// We create the function main
 			// TODO : remove this when you extend the language
-			r.append("define i32 @main() {\n");
+			// r.append("define i32 @main() {\n");
 
 			for (Instruction inst : code)
 				r.append(inst);
 
 			// TODO : remove this when you extend the language
-			r.append("}\n");
+			// r.append("}\n");
 
 			return r.toString();
 
@@ -87,6 +87,67 @@ public class Llvm {
 		}
 	}
 
+	// Type void
+	static public class VoidType extends Type {
+		public String toString() {
+			return "void";
+		}
+	}
+
+	static public class Fonction extends Instruction {
+		Type type;
+		String name;
+		List<String> params;
+
+		public Fonction(Type type, String name, List<String> params) {
+			this.type = type;
+			this.name = name;
+			this.params = params;
+		}
+
+		public String toString() {
+			String str = "define " + type + " @" + name + "(";
+
+			for (int i = 0; i < params.size(); i++) {
+				str += params.get(i);
+				if (i < params.size() - 1) {
+					str += ", ";
+				}
+			}
+			str += "){\n";
+			return str;
+		}
+	}
+
+	static public class FonctionEnd extends Instruction {
+
+		@Override
+		public String toString() {
+			return "}";
+		}
+
+	}
+
+	static public class constPar extends Instruction {
+
+		Type type;
+		String result;
+
+		public constPar(Type type, String result) {
+			this.type = type;
+			this.result = result;
+		}
+
+		public String toString() {
+			String pour100 = "";
+			if (Character.isLetter(result.charAt(0))) {
+				pour100 = "%";
+			}
+			return type + " " + pour100 + result;
+		}
+
+	}
+
 	// LLVM IR Instructions
 	static public abstract class Instruction {
 		public abstract String toString();
@@ -106,8 +167,8 @@ public class Llvm {
 			this.labelDone = labelDone;
 			this.cond = cond;
 		}
-		
-		//TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
+
+		// TODO OPTIMISATION POSSIBLE EN FUSIONANT AVEC IFINSTR
 
 		public String toString() {
 			return Utils.indent(1) + "br " + type + " " + cond + ", label " + "%" + labelDo + ", label " + "%"

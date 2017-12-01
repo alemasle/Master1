@@ -44,8 +44,6 @@ NAMEF	:	IDENT	;
 MAIN	:	'MAIN'	;
 VOID	:	'VOID'	;
 
-// TODO : other keywords
-
 // other tokens (no conflict with keywords in VSL)
 IDENT   : LETTER (LETTER|DIGIT)*;
 TEXT    : '"' (ASCII)* '"' { setText(getText().substring(1, getText().length() - 1)); };

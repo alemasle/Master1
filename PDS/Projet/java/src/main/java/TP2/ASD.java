@@ -2,6 +2,7 @@ package TP2;
 
 import java.util.*;
 
+import TP2.SymbolTable.FunctionSymbol;
 import TP2.SymbolTable.VariableSymbol;
 
 public class ASD {
@@ -13,36 +14,286 @@ public class ASD {
 
 	static public class Program {
 
-		Bloc bloc;
+		List<ProtoFonction> lproto;
+		List<Fonction> lfunc;
+		Fonction main;
 
-		public Program(Bloc bloc) {
-			this.bloc = bloc;
+		public Program(List<ProtoFonction> lproto, Fonction main, List<Fonction> lfunc) {
+			this.lproto = lproto;
+			this.main = main;
+			this.lfunc = lfunc;
 		}
 
 		// Pretty-printer
 		public String pp() {
-			return bloc.pp();
+			return "PROGRAM";
 		}
 
 		// IR generation
 		public Llvm.IR toIR() throws TypeException {
 
-			SymbolTable ts = new SymbolTable();
-
-			Llvm.IR prg = new Llvm.IR(Llvm.empty(), Llvm.empty());
-
-			Llvm.Instruction labelEntry = new Llvm.LabelName("entry");
-			prg.appendCode(labelEntry);
-
-			Bloc.RetBloc retBloc = bloc.toIR(ts);
-
-			if (!ASD.retour) {
-				throw new TypeException("RETURN attendu dans la fonction");
+			if (main == null) {
+				throw new TypeException("Aucun MAIN declare");
 			}
 
-			prg.append(retBloc.ir);
+			Llvm.IR irProg = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
-			return prg;
+			SymbolTable ts = new SymbolTable();
+
+			for (Fonction f : lfunc) {
+				Fonction.RetFonction retFonc = f.toIR(ts);
+				irProg.append(retFonc.ir);
+			}
+
+			Fonction.RetFonction mRet = main.toIR(ts);
+			irProg.append(mRet.ir);
+
+			return irProg;
+		}
+
+	}
+
+	static public class ProtoFonction {
+
+		String type;
+		String name;
+		List<Param> params;
+
+		public ProtoFonction(String type, String name, List<Param> params) {
+			this.type = type;
+			this.name = name;
+			this.params = params;
+		}
+
+		public String pp() {
+			String str = "PROTO " + type + " " + name + "( ";
+			for (Param p : params) {
+				str += p.pp() + " ";
+			}
+			return str + ") ";
+		}
+
+		static public class RetProtoFonction {
+			// The LLVM IR:
+			public Llvm.IR ir;
+
+			public RetProtoFonction(Llvm.IR ir) {
+				this.ir = ir;
+			}
+		}
+
+		public RetProtoFonction toIR(SymbolTable ts) throws TypeException {
+
+			Llvm.IR fonctionIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+			Type t = null;
+
+			if (type == "INT") {
+				t = new IntType();
+			}
+
+			if (type == "VOID'") {
+				t = new VoidType();
+			}
+			if (ts.lookup(name) != null && ts.lookup(name) instanceof FunctionSymbol) {
+				throw new TypeException("Fonction " + name + " est deja declaree");
+			} else {
+				SymbolTable args = new SymbolTable();
+				SymbolTable.VariableSymbol sym = null;
+
+				for (Param p : params) {
+					Param.RetParam retP = p.toIR(ts);
+					sym = retP.varSym;
+
+					if (Character.isLetter(sym.ident.charAt(0))) {
+						args.add(sym);
+					}
+				}
+				SymbolTable.FunctionSymbol protoF = new SymbolTable.FunctionSymbol(t, name, args, false);
+				ts.add(protoF);
+			}
+
+			return new RetProtoFonction(fonctionIR);
+		}
+
+	}
+
+	static public class Fonction {
+
+		String type;
+		String name;
+		List<Param> params;
+		FonctionCorps c;
+
+		public Fonction(String type, String name, List<Param> params, FonctionCorps c) {
+			this.type = type;
+			this.name = name;
+			this.params = params;
+			this.c = c;
+		}
+
+		public String pp() {
+			String str = "FUNC " + type + " " + name + "( ";
+			for (Param p : params) {
+				str += p.pp() + " ";
+			}
+			return str + ") " + c.pp();
+		}
+
+		static public class RetFonction {
+			// The LLVM IR:
+			public Llvm.IR ir;
+
+			public RetFonction(Llvm.IR ir) {
+				this.ir = ir;
+			}
+		}
+
+		public RetFonction toIR(SymbolTable ts) throws TypeException {
+
+			Llvm.IR fonctionIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+			Type t = null;
+
+			if (type == "INT") {
+				t = new IntType();
+			}
+
+			if (type == "VOID'") {
+				t = new VoidType();
+			}
+
+			if (name == "main") {
+
+				if (ts.lookup(name) != null && ts.lookup(name) instanceof FunctionSymbol) {
+
+					FunctionSymbol x = (FunctionSymbol) ts.lookup(name);
+					if (x.defined) {
+						throw new TypeException("La fonction " + name + " est deja definie");
+					}
+					x.defined = true;
+
+				} else {
+
+					SymbolTable args = new SymbolTable();
+					SymbolTable.VariableSymbol sym = null;
+
+					for (Param p : params) {
+						Param.RetParam retP = p.toIR(ts);
+						sym = retP.varSym;
+
+						if (Character.isLetter(sym.ident.charAt(0))) {
+							args.add(sym);
+						}
+					}
+					SymbolTable.FunctionSymbol main = new SymbolTable.FunctionSymbol(t, name, args, true);
+					ts.add(main);
+				}
+			} else if (ts.lookup(name) == null) {
+				throw new TypeException("Fonction " + name + " n'est pas declaree par un PROTO");
+			} else if (ts.lookup(name) instanceof FunctionSymbol) {
+				FunctionSymbol x = (FunctionSymbol) ts.lookup(name);
+				if (x.defined) {
+					throw new TypeException("La fonction " + name + " est deja definie");
+				}
+				x.defined = true;
+			}
+
+			List<String> pS = new ArrayList<String>();
+
+			for (Param p : params) {
+				Param.RetParam tmp = p.toIR(ts);
+				pS.add(tmp.result);
+			}
+
+			FonctionCorps.RetFonctionCorps retCorps = c.toIR(ts);
+
+			Llvm.Instruction fct = new Llvm.Fonction(t.toLlvmType(), name, pS);
+
+			Llvm.Instruction fermAcc = new Llvm.FonctionEnd();
+
+			fonctionIR.appendCode(fct);
+
+			fonctionIR.append(retCorps.ir);
+
+			fonctionIR.appendCode(fermAcc);
+
+			return new RetFonction(fonctionIR);
+		}
+
+	}
+
+	static public class Param {
+
+		Expression e = null;
+
+		public Param(Expression e) {
+			this.e = e;
+		}
+
+		public String pp() {
+			return e.pp();
+		}
+
+		static public class RetParam {
+			// The LLVM IR:
+			public Llvm.IR ir;
+			public String result;
+			public SymbolTable.VariableSymbol varSym;
+
+			public RetParam(Llvm.IR ir, String result, VariableSymbol varSym) {
+				this.ir = ir;
+				this.result = result;
+				this.varSym = varSym;
+			}
+		}
+
+		public RetParam toIR(SymbolTable ts) throws TypeException {
+
+			Llvm.IR paramIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Expression.RetExpression retExp = e.toIR(ts);
+
+			SymbolTable.VariableSymbol varS = new VariableSymbol(retExp.type, retExp.result);
+
+			Llvm.Instruction par = new Llvm.constPar(retExp.type.toLlvmType(), retExp.result);
+
+			paramIR.appendCode(par);
+
+			return new RetParam(paramIR, par.toString(), varS);
+
+		}
+	}
+
+	static public class FonctionCorps {
+
+		Bloc b = null;
+
+		public FonctionCorps(Bloc b) {
+			this.b = b;
+		}
+
+		public String pp() {
+			return b.pp();
+		}
+
+		static public class RetFonctionCorps {
+			// The LLVM IR:
+			public Llvm.IR ir;
+
+			public RetFonctionCorps(Llvm.IR ir) {
+				this.ir = ir;
+			}
+
+		}
+
+		public RetFonctionCorps toIR(SymbolTable ts) throws TypeException {
+
+			Llvm.IR funcIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			Bloc.RetBloc retB = b.toIR(ts);
+
+			funcIR.append(retB.ir);
+
+			return new RetFonctionCorps(funcIR);
 		}
 
 	}
@@ -635,6 +886,20 @@ public class ASD {
 
 		public Llvm.Type toLlvmType() {
 			return new Llvm.BoolType();
+		}
+	}
+
+	static class VoidType extends Type {
+		public String pp() {
+			return "VOID";
+		}
+
+		public boolean equals(Object obj) {
+			return obj instanceof VoidType;
+		}
+
+		public Llvm.Type toLlvmType() {
+			return new Llvm.VoidType();
 		}
 	}
 

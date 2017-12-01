@@ -1,4 +1,4 @@
-INT main() {
+FUNC INT MAIN() {
 
 INT x, b,c,d	
 x := 20
