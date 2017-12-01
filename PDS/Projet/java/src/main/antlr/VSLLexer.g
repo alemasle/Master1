@@ -39,7 +39,8 @@ WHILE	:	'WHILE'	;
 DO	:	'DO'	;
 DONE	:	'DONE'	;
 PROTO	:	'PROTO'	;
-FUNC	:	IDENT	;
+FUNC	:	'FUNC'	;
+NAMEF	:	IDENT	;
 MAIN	:	'MAIN'	;
 VOID	:	'VOID'	;
 

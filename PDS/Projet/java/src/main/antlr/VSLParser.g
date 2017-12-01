@@ -13,26 +13,29 @@ options {
 }
 
 
+// Cree le programme "program" principal.
 program returns [ASD.Program out]
 	:{List <ASD.Fonction> lfproto = new ArrayList<ASD.Fonction>();
-	  List <ASD.Fonction> lfunc = new ArrayList<ASD.Fonction>(); } 
+	  List <ASD.Fonction> lfunc = new ArrayList<ASD.Fonction>();} 
 	
-	( PROTO ((INT|VOID) name=FUNC LP lp=param RP c=corps { ASD.Fonction protoF = new ASD.Fonction( TYPE ,$name.text, $lp, $c) ;} )*
+	( PROTO {String str = "";} ({str = "INT";} INT | {str = "VOID";} VOID) name=NAMEF LP lp=param RP { ASD.ProtoFonction protoF = new ASD.ProtoFonction(str ,$name.text ,$lp); lfproto.add(protoF);} )*
 	
-	( (INT|VOID) MAIN LP lp=params RP f=fonction { ASD.Fonction m = new ASD.Fonction($lp.out); })
+	( FUNC {String str = "";} ({str = "INT";} INT | {str = "VOID";} VOID) MAIN LP lp=params RP c=corps { ASD.Fonction m = new ASD.Fonction("MAIN", $lp.out, $c.out); })
 	
-	( ((INT|VOID) FUNC LP lp=params RP f=fonction {lfunc.add($f.out)}) *
+	( FUNC {String str = "";} ({str = "INT";} INT | {str = "VOID";} VOID) name=NAMEF LP lp=params RP c=corps { ASD.Fonction func = new ASD.Fonction($NAMEF.text, $lp.out, $c.out); lfunc.add(func);})*
 	
- 	 {$out = new ASD.Program(lfproto, m, lfunc); }
+	// Un "program" est compose d'une liste de "proto", d'un main, et d'une liste de "fonctions"
+ 	 { $out = new ASD.Program(lfproto, m, lfunc); }
 	;
 
-
+// Cree la liste de parametres "param" d'une fonction.
 params returns [ASD.Param out]
 	:{List <ASD.Param> lp = new ArrayList<ASD.Param>();}
 		(p=params {lp.add($p.out)})?
 	 {$out = new ASD.Param(lp); }
 	;
 
+// Le corps de la fonction, ses blocs d'instructions et d'expressions et ses declarations.
 corps returns [ASD.Fonction out]
     : ACCOLADEG b=bloc ACCOLADED EOF { $out = new ASD.Fonction($b.out); }
     | b=bloc EOF { $out = new ASD.Fonction($b.out); }
