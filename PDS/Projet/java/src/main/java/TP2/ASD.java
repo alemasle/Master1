@@ -41,11 +41,13 @@ public class ASD {
 			}
 
 			for (Fonction f : lfunc) {
-				if (f.name == "main") {
+
+				if (f.name.compareTo("main") == 0) {
 					main = f;
 				} else {
 					Fonction.RetFonction retFonc = f.toIR(ts);
 					irProg.append(retFonc.ir);
+
 				}
 			}
 
@@ -95,11 +97,11 @@ public class ASD {
 			Llvm.IR fonctionIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Type t = null;
 
-			if (type == "INT") {
+			if (type.compareTo("INT") == 0) {
 				t = new IntType();
 			}
 
-			if (type == "VOID'") {
+			if (type.compareTo("VOID") == 0) {
 				t = new VoidType();
 			}
 			if (ts.lookup(name) != null && ts.lookup(name) instanceof FunctionSymbol) {
@@ -161,15 +163,15 @@ public class ASD {
 			Llvm.IR fonctionIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Type t = null;
 
-			if (type == "INT") {
+			if (type.compareTo("INT") == 0) {
 				t = new IntType();
 			}
 
-			if (type == "VOID'") {
+			if (type.compareTo("VOID") == 0) {
 				t = new VoidType();
 			}
 
-			if (name == "main") {
+			if (name.compareTo("main") == 0) {
 
 				if (ts.lookup(name) != null && ts.lookup(name) instanceof FunctionSymbol) {
 
@@ -194,7 +196,6 @@ public class ASD {
 					}
 					SymbolTable.FunctionSymbol main = new SymbolTable.FunctionSymbol(t, name, args, true);
 					ts.add(main);
-					System.out.println("EHEHIEHEIHIEHEIHZHZBHBHZE " + ts.lookup(main.ident).ident);
 				}
 			} else if (ts.lookup(name) == null) {
 
