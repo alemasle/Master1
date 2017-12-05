@@ -46,7 +46,7 @@ params returns [ASD.Param out]
 // Le corps de la fonction, ses blocs d'instructions et d'expressions et ses declarations.
 corps returns [ASD.FonctionCorps out]
     : ACCOLADEG b=bloc ACCOLADED { $out = new ASD.FonctionCorps($b.out); }
-    //| b=bloc { $out = new ASD.FonctionCorps($b.out); }
+    | b=bloc { $out = new ASD.FonctionCorps($b.out); }
     ;
 	
 	

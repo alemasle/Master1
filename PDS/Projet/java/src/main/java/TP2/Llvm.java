@@ -391,4 +391,11 @@ public class Llvm {
 		}
 	}
 
+	static public class ReturnVoid extends Instruction {
+
+		public String toString() {
+			return Utils.indent(1) + "ret void\n";
+		}
+	}
+
 }

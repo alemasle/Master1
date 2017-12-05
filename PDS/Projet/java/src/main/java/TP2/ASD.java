@@ -162,6 +162,7 @@ public class ASD {
 
 			Llvm.IR fonctionIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Type t = null;
+			FunctionSymbol x = null;
 
 			if (type.compareTo("INT") == 0) {
 				t = new IntType();
@@ -175,7 +176,7 @@ public class ASD {
 
 				if (ts.lookup(name) != null && ts.lookup(name) instanceof FunctionSymbol) {
 
-					FunctionSymbol x = (FunctionSymbol) ts.lookup(name);
+					x = (FunctionSymbol) ts.lookup(name);
 					if (x.defined) {
 						throw new TypeException("La fonction " + name + " est deja definie");
 					}
@@ -203,7 +204,7 @@ public class ASD {
 
 			} else if (ts.lookup(name) instanceof FunctionSymbol) {
 
-				FunctionSymbol x = (FunctionSymbol) ts.lookup(name);
+				x = (FunctionSymbol) ts.lookup(name);
 
 				if (x.defined) {
 					throw new TypeException("La fonction " + name + " est deja definie");
@@ -212,6 +213,12 @@ public class ASD {
 				if (x.arguments.getTable().size() != params.size()) {
 					throw new TypeException("La fonction " + name + " a" + x.arguments.getTable().size()
 							+ " arguments, vous en avez donne " + params.size());
+				}
+
+				if (x.returnType != t) {
+					throw new TypeException("La fonction " + name + " est declaree avec le type " + x.returnType
+							+ " mais est definie avec le type " + t);
+
 				}
 
 				x.defined = true;
@@ -225,7 +232,7 @@ public class ASD {
 				pS.add(tmp.result);
 			}
 
-			FonctionCorps.RetFonctionCorps retCorps = c.toIR(ts);
+			FonctionCorps.RetFonctionCorps retCorps = c.toIR(ts, x);
 
 			Llvm.Instruction fct = new Llvm.Fonction(t.toLlvmType(), name, pS);
 
@@ -234,6 +241,15 @@ public class ASD {
 			fonctionIR.appendCode(fct);
 
 			fonctionIR.append(retCorps.ir);
+
+			if (type.compareTo("INT") == 0 && !ASD.retour) {
+				throw new TypeException("Fonction " + name + " de type INT necessite un RETURN a la fin de celle ci.");
+			}
+
+			if (type.compareTo("VOID") == 0) {
+				Llvm.Instruction retVoid = new Llvm.ReturnVoid();
+				fonctionIR.appendCode(retVoid);
+			}
 
 			fonctionIR.appendCode(fermAcc);
 
@@ -306,11 +322,11 @@ public class ASD {
 
 		}
 
-		public RetFonctionCorps toIR(SymbolTable ts) throws TypeException {
+		public RetFonctionCorps toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 
 			Llvm.IR funcIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
-			Bloc.RetBloc retB = b.toIR(ts);
+			Bloc.RetBloc retB = b.toIR(ts, fct);
 
 			funcIR.append(retB.ir);
 
@@ -347,7 +363,7 @@ public class ASD {
 			}
 		}
 
-		public RetBloc toIR(SymbolTable ts) throws TypeException {
+		public RetBloc toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 			Llvm.IR blocIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
 			SymbolTable tsF = new SymbolTable(ts);
@@ -358,7 +374,7 @@ public class ASD {
 			}
 
 			for (Statement s : ls) {
-				Statement.RetStatement retStat = s.toIR(tsF);
+				Statement.RetStatement retStat = s.toIR(tsF, fct);
 				blocIR.append(retStat.ir);
 			}
 
@@ -407,26 +423,7 @@ public class ASD {
 
 	}
 
-	static public abstract class Stat {
-		public abstract String pp();
-
-		public abstract RetStatement toIR(SymbolTable ts) throws TypeException;
-
-		static public class RetStatement {
-			// The LLVM IR:
-			public Llvm.IR ir = null;
-			Type type = null;
-			String result = null;
-
-			public RetStatement(Llvm.IR ir, Type type, String result) {
-				this.ir = ir;
-				this.type = type;
-				this.result = result;
-			}
-		}
-	}
-
-	static public class Statement extends Stat {
+	static public class Statement {
 
 		Instructions i = null;
 		Expression e = null;
@@ -440,6 +437,19 @@ public class ASD {
 			this.i = i;
 		}
 
+		static public class RetStatement {
+			// The LLVM IR:
+			public Llvm.IR ir = null;
+			Type type = null;
+			String result = null;
+
+			public RetStatement(Llvm.IR ir, Type type, String result) {
+				this.ir = ir;
+				this.type = type;
+				this.result = result;
+			}
+		}
+
 		public String pp() {
 			if (i == null && e != null)
 				return e.pp();
@@ -449,11 +459,11 @@ public class ASD {
 				return "";
 		}
 
-		public RetStatement toIR(SymbolTable ts) throws TypeException {
+		public RetStatement toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 
 			if (i != null) {
 
-				Instructions.RetInstructions instrRet = i.toIR(ts);
+				Instructions.RetInstructions instrRet = i.toIR(ts, fct);
 				return new RetStatement(instrRet.ir, null, null);
 
 			} else if (e != null) {
@@ -467,7 +477,7 @@ public class ASD {
 	static public abstract class Instructions {
 		public abstract String pp();
 
-		public abstract RetInstructions toIR(SymbolTable ts) throws TypeException;
+		public abstract RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException;
 
 		static public class RetInstructions {
 			// The LLVM IR:
@@ -494,10 +504,10 @@ public class ASD {
 			return "(" + "While " + condExpr.pp() + "Do " + doBloc.pp() + "Done )";
 		}
 
-		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 			Llvm.IR whileRet = new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Expression.RetExpression condRet = condExpr.toIR(ts);
-			Bloc.RetBloc doRet = doBloc.toIR(ts);
+			Bloc.RetBloc doRet = doBloc.toIR(ts, fct);
 
 			String labelWhile = Utils.newlab("while");
 			String labelDo = Utils.newlab("do");
@@ -564,9 +574,9 @@ public class ASD {
 			return str;
 		}
 
-		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 			Expression.RetExpression condRet = condExpr.toIR(ts);
-			Bloc.RetBloc thenRet = thenBloc.toIR(ts);
+			Bloc.RetBloc thenRet = thenBloc.toIR(ts, fct);
 
 			String labelThen = Utils.newlab("then");
 			String labelElse = null;
@@ -602,7 +612,7 @@ public class ASD {
 
 			// else
 			if (elseBloc != null) {
-				Bloc.RetBloc elseRet = elseBloc.toIR(ts);
+				Bloc.RetBloc elseRet = elseBloc.toIR(ts, fct);
 				Llvm.Instruction labelElseNom = new Llvm.LabelName(pile.pop());
 				condRet.ir.appendCode(labelElseNom);
 
@@ -635,7 +645,7 @@ public class ASD {
 			return "(" + ident.pp() + " := " + expr.pp() + ")";
 		}
 
-		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 			Identificateur.RetIdentificateur identRet = ident.toIR(ts);
 			Expression.RetExpression exprRet = expr.toIR(ts);
 
@@ -671,7 +681,7 @@ public class ASD {
 			return "(" + " return " + expr.pp() + " )";
 		}
 
-		public RetInstructions toIR(SymbolTable ts) throws TypeException {
+		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 
 			Expression.RetExpression exprRet = expr.toIR(ts);
 
@@ -680,7 +690,6 @@ public class ASD {
 			if (ASD.depth == 0) {
 				ASD.retour = true;
 			}
-
 			// append this instruction
 			exprRet.ir.appendCode(retour);
 
