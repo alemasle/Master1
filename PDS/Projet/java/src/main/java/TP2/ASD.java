@@ -197,6 +197,7 @@ public class ASD {
 					}
 					SymbolTable.FunctionSymbol main = new SymbolTable.FunctionSymbol(t, name, args, true);
 					ts.add(main);
+					x = (FunctionSymbol) ts.lookup(main.ident);
 				}
 			} else if (ts.lookup(name) == null) {
 
@@ -215,14 +216,12 @@ public class ASD {
 							+ " arguments, vous en avez donne " + params.size());
 				}
 
-				if (x.returnType != t) {
+				if (x.returnType.toString().compareTo(t.toString()) == 0) {
 					throw new TypeException("La fonction " + name + " est declaree avec le type " + x.returnType
 							+ " mais est definie avec le type " + t);
 
 				}
-
 				x.defined = true;
-
 			}
 
 			List<String> pS = new ArrayList<String>();
@@ -333,6 +332,93 @@ public class ASD {
 			return new RetFonctionCorps(funcIR);
 		}
 
+	}
+
+	static public class CallVoid extends Instructions {
+
+		String name;
+		List<Param> params = new ArrayList<>();
+
+		public CallVoid(String name, List<Param> params) {
+			this.name = name;
+			this.params = params;
+		}
+
+		public String pp() {
+			String str = name + "(";
+			for (Param p : params) {
+				str += p.pp() + " ";
+			}
+			return str + ")";
+		}
+
+		@Override
+		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
+			Llvm.IR callIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			List<String> pS = new ArrayList<String>();
+
+			for (Param p : params) {
+				Param.RetParam tmp = p.toIR(ts);
+				pS.add(tmp.result);
+			}
+
+			if (ts.lookup(name) == null) {
+				throw new TypeException("fonction non existante donc appel interdit");
+			}
+
+			FunctionSymbol f = (FunctionSymbol) ts.lookup(name);
+			Type t = f.returnType;
+			Llvm.Instruction call = new Llvm.CallFonction(t.toLlvmType(), name, pS);
+
+			callIR.appendCode(call);
+
+			return new RetInstructions(callIR);
+		}
+
+	}
+
+	static public class CallInt extends Expression {
+
+		String name;
+		List<Param> params = new ArrayList<>();
+
+		public CallInt(String name, List<Param> params) {
+			this.name = name;
+			this.params = params;
+		}
+
+		public String pp() {
+			String str = name + "(";
+			for (Param p : params) {
+				str += p.pp() + " ";
+			}
+			return str + ")";
+		}
+
+		@Override
+		public RetExpression toIR(SymbolTable ts) throws TypeException {
+			Llvm.IR callIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
+
+			List<String> pS = new ArrayList<String>();
+
+			for (Param p : params) {
+				Param.RetParam tmp = p.toIR(ts);
+				pS.add(tmp.result);
+			}
+
+			if (ts.lookup(name) == null) {
+				throw new TypeException("fonction non existante donc appel interdit");
+			}
+
+			FunctionSymbol f = (FunctionSymbol) ts.lookup(name);
+			Type t = f.returnType;
+			Llvm.Instruction call = new Llvm.CallFonction(t.toLlvmType(), name, pS);
+
+			callIR.appendCode(call);
+
+			return new RetExpression(callIR, t, result);
+		}
 	}
 
 	static public class Bloc {
@@ -505,6 +591,7 @@ public class ASD {
 		}
 
 		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
+			ASD.depth++;
 			Llvm.IR whileRet = new Llvm.IR(Llvm.empty(), Llvm.empty());
 			Expression.RetExpression condRet = condExpr.toIR(ts);
 			Bloc.RetBloc doRet = doBloc.toIR(ts, fct);
@@ -547,6 +634,7 @@ public class ASD {
 			Llvm.Instruction labelDoneNom = new Llvm.LabelName(pile.pop());
 			whileRet.appendCode(labelDoneNom);
 
+			ASD.depth--;
 			// return the generated IR, plus the type of this expression
 			return new RetInstructions(whileRet);
 		}
@@ -575,6 +663,7 @@ public class ASD {
 		}
 
 		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
+			ASD.depth++;
 			Expression.RetExpression condRet = condExpr.toIR(ts);
 			Bloc.RetBloc thenRet = thenBloc.toIR(ts, fct);
 
@@ -626,6 +715,7 @@ public class ASD {
 			Llvm.Instruction labelFiNom = new Llvm.LabelName(pile.pop());
 			condRet.ir.appendCode(labelFiNom);
 
+			ASD.depth--;
 			// return the generated IR, plus the type of this expression
 			return new RetInstructions(condRet.ir);
 		}
@@ -684,7 +774,10 @@ public class ASD {
 		public RetInstructions toIR(SymbolTable ts, FunctionSymbol fct) throws TypeException {
 
 			Expression.RetExpression exprRet = expr.toIR(ts);
-
+			if (fct.returnType.pp().compareTo("VOID") == 0) {
+				throw new TypeException(
+						"La fonction " + fct.ident + " est de type VOID donc ne doit pas avoir de RETURN.");
+			}
 			Llvm.Instruction retour = new Llvm.Return(exprRet.type.toLlvmType(), exprRet.result);
 
 			if (ASD.depth == 0) {

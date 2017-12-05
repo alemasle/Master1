@@ -1,8 +1,11 @@
-FUNC INT main(){
+FUNC VOID main(){
 
-INT x
+INT x,y
 
-x := 1 + 2
+x :=1
+IF x
+THEN y:=1
+ELSE y:=2
 
-RETURN x
+FI
 }

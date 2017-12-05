@@ -1,3 +1,4 @@
+PROTO VOID test()
 
 FUNC INT main() {
 
@@ -18,4 +19,15 @@ WHILE x
 	c:=5	
 }
 DONE
+RETURN d
+}
+
+FUNC VOID test() {
+
+INT x,b
+x:= 10
+IF x
+THEN b := 100
+ELSE b := 50
+FI
 }

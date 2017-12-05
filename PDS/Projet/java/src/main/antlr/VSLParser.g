@@ -76,6 +76,7 @@ instructions returns [ASD.Instructions out]
 	| r=retour { $out = $r.out; }
 	| i=ifinstr	{ $out = $i.out; }
 	| w=whileinstr	{ $out = $w.out; }
+	| c=appelfonctionvoid { $out = $c.out;}
 	;
 
 
@@ -92,8 +93,8 @@ retour returns [ASD.Instructions out]
 ifinstr returns [ASD.Instructions out]
 	: {ASD.Bloc ex = null; } 
 	IF c=condition
-	THEN  { ASD.depth ++; } th=bloc { ASD.depth --;}
-	(ELSE { ASD.depth ++;} el=bloc { ASD.depth --;} { ex=$el.out; } )? 
+	THEN th=bloc
+	(ELSE el=bloc { ex=$el.out; } )? 
 	FI
 	  { $out = new ASD.IfInstruction($c.out, $th.out, ex); }
 	;
@@ -102,10 +103,24 @@ ifinstr returns [ASD.Instructions out]
 whileinstr returns [ASD.Instructions out]
 	:	WHILE c=condition
 		DO ACCOLADEG
-		{ ASD.depth ++; } b=bloc { ASD.depth --; } 
+		b=bloc 
 		ACCOLADED
 		DONE
 	{ $out = new ASD.WhileInstruction($c.out, $b.out); }
+	;
+
+
+appelfonctionvoid returns [ASD.Instructions out]
+	: { List <ASD.Param> lp = new ArrayList<ASD.Param>();}
+	IDENT RP  (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? LP 
+	{ $out = new ASD.CallVoid($IDENT.text, lp); }
+	;
+	
+	
+appelfonctionint returns [ASD.Expression out]
+	: { List <ASD.Param> lp = new ArrayList<ASD.Param>();}
+	IDENT RP  (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? LP 
+	{ $out = new ASD.CallInt($IDENT.text, lp); }
 	;
 
 
@@ -135,6 +150,7 @@ expression2 returns [ASD.Expression out]
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
     | LP e=expression RP { $out = $e.out; }
+    | a=appelfonctionint { $out = $a.out; }
     ;
     
 

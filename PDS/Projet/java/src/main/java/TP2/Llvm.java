@@ -123,7 +123,7 @@ public class Llvm {
 
 		@Override
 		public String toString() {
-			return "}";
+			return "}\n\n";
 		}
 
 	}
@@ -146,6 +146,31 @@ public class Llvm {
 			return type + " " + pour100 + result;
 		}
 
+	}
+
+	static public class CallFonction extends Instruction {
+		Type type;
+		String name;
+		List<String> params;
+
+		public CallFonction(Type type, String name, List<String> params) {
+			this.type = type;
+			this.name = name;
+			this.params = params;
+		}
+
+		public String toString() {
+			String str = "call " + type + " @" + name + "(";
+
+			for (int i = 0; i < params.size(); i++) {
+				str += params.get(i);
+				if (i < params.size() - 1) {
+					str += ", ";
+				}
+			}
+			str += ")";
+			return str;
+		}
 	}
 
 	// LLVM IR Instructions
