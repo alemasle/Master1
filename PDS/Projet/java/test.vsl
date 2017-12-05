@@ -1,4 +1,4 @@
-PROTO INT test(n)
+PROTO INT main()
 
 FUNC INT main() {
 

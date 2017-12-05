@@ -16,11 +16,9 @@ public class ASD {
 
 		List<ProtoFonction> lproto;
 		List<Fonction> lfunc;
-		Fonction main;
 
-		public Program(List<ProtoFonction> lproto, Fonction main, List<Fonction> lfunc) {
+		public Program(List<ProtoFonction> lproto, List<Fonction> lfunc) {
 			this.lproto = lproto;
-			this.main = main;
 			this.lfunc = lfunc;
 		}
 
@@ -32,17 +30,27 @@ public class ASD {
 		// IR generation
 		public Llvm.IR toIR() throws TypeException {
 
-			if (main == null) {
-				throw new TypeException("Aucun MAIN declare");
-			}
-
 			Llvm.IR irProg = new Llvm.IR(Llvm.empty(), Llvm.empty());
 
 			SymbolTable ts = new SymbolTable();
 
+			Fonction main = null;
+
+			for (ProtoFonction p : lproto) {
+				irProg.append(p.toIR(ts).ir);
+			}
+
 			for (Fonction f : lfunc) {
-				Fonction.RetFonction retFonc = f.toIR(ts);
-				irProg.append(retFonc.ir);
+				if (f.name == "main") {
+					main = f;
+				} else {
+					Fonction.RetFonction retFonc = f.toIR(ts);
+					irProg.append(retFonc.ir);
+				}
+			}
+
+			if (main == null) {
+				throw new TypeException("Fonction main() absente du programme.");
 			}
 
 			Fonction.RetFonction mRet = main.toIR(ts);
@@ -98,14 +106,14 @@ public class ASD {
 				throw new TypeException("Fonction " + name + " est deja declaree");
 			} else {
 				SymbolTable args = new SymbolTable();
-				SymbolTable.VariableSymbol sym = null;
+				SymbolTable.VariableSymbol para = null;
 
 				for (Param p : params) {
 					Param.RetParam retP = p.toIR(ts);
-					sym = retP.varSym;
+					para = retP.varSym;
 
-					if (Character.isLetter(sym.ident.charAt(0))) {
-						args.add(sym);
+					if (Character.isLetter(para.ident.charAt(0))) {
+						args.add(para);
 					}
 				}
 				SymbolTable.FunctionSymbol protoF = new SymbolTable.FunctionSymbol(t, name, args, false);
@@ -186,9 +194,10 @@ public class ASD {
 					}
 					SymbolTable.FunctionSymbol main = new SymbolTable.FunctionSymbol(t, name, args, true);
 					ts.add(main);
+					System.out.println("EHEHIEHEIHIEHEIHZHZBHBHZE " + ts.lookup(main.ident).ident);
 				}
 			} else if (ts.lookup(name) == null) {
-				
+
 				throw new TypeException("Fonction " + name + " n'est pas declaree par un PROTO");
 
 			} else if (ts.lookup(name) instanceof FunctionSymbol) {
@@ -198,6 +207,12 @@ public class ASD {
 				if (x.defined) {
 					throw new TypeException("La fonction " + name + " est deja definie");
 				}
+
+				if (x.arguments.getTable().size() != params.size()) {
+					throw new TypeException("La fonction " + name + " a" + x.arguments.getTable().size()
+							+ " arguments, vous en avez donne " + params.size());
+				}
+
 				x.defined = true;
 
 			}

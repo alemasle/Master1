@@ -12,13 +12,11 @@ import java.util.HashMap;
 
 public class SymbolTable {
 	// Define different symbols
-	public static abstract class Symbol<T> {
+	public static abstract class Symbol {
 		String ident; // minimum, used in the storage map
-
-		public abstract T getSymbol();
 	}
 
-	public static class VariableSymbol extends Symbol<VariableSymbol> {
+	public static class VariableSymbol extends Symbol {
 		ASD.Type type;
 
 		VariableSymbol(ASD.Type type, String ident) {
@@ -37,14 +35,9 @@ public class SymbolTable {
 			VariableSymbol o = (VariableSymbol) obj;
 			return o.type.equals(this.type) && o.ident.equals(this.ident);
 		}
-
-		@Override
-		public VariableSymbol getSymbol() {
-			return this;
-		}
 	}
 
-	public static class FunctionSymbol extends Symbol<FunctionSymbol> {
+	public static class FunctionSymbol extends Symbol {
 		ASD.Type returnType;
 		SymbolTable arguments; // Its argument can be viewed as a symbol table
 		boolean defined; // false if declared but not defined
@@ -68,35 +61,29 @@ public class SymbolTable {
 			return o.returnType.equals(this.returnType) && o.ident.equals(this.ident)
 					&& o.arguments.equals(this.arguments) && o.defined == this.defined;
 		}
-
-		@Override
-		public FunctionSymbol getSymbol() {
-			return this;
-		}
-
 	}
 
 	// Store the table as a map
-	private Map<String, Symbol<?>> table;
+	private Map<String, Symbol> table;
 	// Parent table
 	private SymbolTable parent;
 
 	// Construct a new symbol table
 	public SymbolTable() {
-		this.table = new HashMap<String, Symbol<?>>();
+		this.table = new HashMap<String, Symbol>();
 		this.parent = null;
 	}
 
 	// Construct a new symbol table with a parent
 	public SymbolTable(SymbolTable parent) {
-		this.table = new HashMap<String, Symbol<?>>();
+		this.table = new HashMap<String, Symbol>();
 		this.parent = parent;
 	}
 
 	// Add a new symbol
 	// Returns false if the symbol cannot be added (already in the scope)
-	public boolean add(Symbol<?> sym) {
-		Symbol<?> res = this.table.get(sym.ident);
+	public boolean add(Symbol sym) {
+		Symbol res = this.table.get(sym.ident);
 		if (res != null) {
 			return false;
 		}
@@ -112,8 +99,8 @@ public class SymbolTable {
 		return this.table.remove(ident) != null;
 	}
 
-	public Symbol<?> lookup(String ident) {
-		Symbol<?> res = this.table.get(ident);
+	public Symbol lookup(String ident) {
+		Symbol res = this.table.get(ident);
 
 		if ((res == null) && (this.parent != null)) {
 			// Forward request
@@ -121,6 +108,10 @@ public class SymbolTable {
 		}
 
 		return res; // Either the symbol or null
+	}
+	
+	public Map<String, Symbol> getTable(){
+		return this.table;
 	}
 
 	@Override

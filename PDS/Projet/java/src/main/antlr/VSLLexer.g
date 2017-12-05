@@ -40,7 +40,6 @@ DO	:	'DO'	;
 DONE	:	'DONE'	;
 PROTO	:	'PROTO'	;
 FUNC	:	'FUNC'	;
-MAIN	:	'main'	;
 VOID	:	'VOID'	;
 
 // other tokens (no conflict with keywords in VSL)

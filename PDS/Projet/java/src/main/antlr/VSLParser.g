@@ -18,7 +18,6 @@ program returns [ASD.Program out]
 	:{List <ASD.ProtoFonction> lfproto = new ArrayList<ASD.ProtoFonction>();
 	  List <ASD.Fonction> lfunc = new ArrayList<ASD.Fonction>();
 	  List <ASD.Param> lp = new ArrayList<ASD.Param>();
-	  ASD.Fonction m = null;
 	  String type = "";}
 	
 	( PROTO	( DECINT {type = "INT";} | VOID {type = "VOID";} )	IDENT LP (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? RP
@@ -27,20 +26,14 @@ program returns [ASD.Program out]
 	
 	{lp = new ArrayList<ASD.Param>();}
 	
-	( FUNC ( DECINT {type = "INT";} | VOID {type = "VOID";} ) MAIN LP (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? RP c=corps 
-	{ m = new ASD.Fonction(type,"main", lp, $c.out); }
-	)
-	
-	{lp = new ArrayList<ASD.Param>();}
-	
 	( FUNC ( DECINT {type = "INT";} | VOID {type = "VOID";} ) IDENT LP (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? RP c=corps
 	{ ASD.Fonction func = new ASD.Fonction(type, $IDENT.text, lp, $c.out); lfunc.add(func);}
-	)*
+	)+
 	
 	EOF
 	
 	// Un "program" est compose d'une liste de "proto", d'un main, et d'une liste de "fonctions"
- 	 { $out = new ASD.Program(lfproto, m, lfunc); }
+ 	 { $out = new ASD.Program(lfproto, lfunc); }
 	;
 	
 
