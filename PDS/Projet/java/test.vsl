@@ -1,4 +1,6 @@
-FUNC INT MAIN() {
+PROTO INT test(n)
+
+FUNC INT main() {
 
 INT x, b,c,d	
 x := 20

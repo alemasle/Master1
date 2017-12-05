@@ -188,13 +188,18 @@ public class ASD {
 					ts.add(main);
 				}
 			} else if (ts.lookup(name) == null) {
+				
 				throw new TypeException("Fonction " + name + " n'est pas declaree par un PROTO");
+
 			} else if (ts.lookup(name) instanceof FunctionSymbol) {
+
 				FunctionSymbol x = (FunctionSymbol) ts.lookup(name);
+
 				if (x.defined) {
 					throw new TypeException("La fonction " + name + " est deja definie");
 				}
 				x.defined = true;
+
 			}
 
 			List<String> pS = new ArrayList<String>();

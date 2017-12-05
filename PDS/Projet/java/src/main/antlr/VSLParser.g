@@ -21,20 +21,20 @@ program returns [ASD.Program out]
 	  ASD.Fonction m = null;
 	  String type = "";}
 	
-	( PROTO	( DECINT {type = "INT";} | VOID {type = "VOID";} )	NAMEF LP (p=params {lp.add($p.out);})* RP
-	{ ASD.ProtoFonction protoF = new ASD.ProtoFonction(type, $NAMEF.text, lp); lfproto.add(protoF);} 
+	( PROTO	( DECINT {type = "INT";} | VOID {type = "VOID";} )	IDENT LP (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? RP
+	{ ASD.ProtoFonction protoF = new ASD.ProtoFonction(type, $IDENT.text, lp); lfproto.add(protoF);} 
 	)*
 	
 	{lp = new ArrayList<ASD.Param>();}
 	
-	( FUNC ( DECINT {type = "INT";} | VOID {type = "VOID";} ) MAIN LP (p=params {lp.add($p.out);})* RP	c=corps 
+	( FUNC ( DECINT {type = "INT";} | VOID {type = "VOID";} ) MAIN LP (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? RP c=corps 
 	{ m = new ASD.Fonction(type,"main", lp, $c.out); }
 	)
 	
 	{lp = new ArrayList<ASD.Param>();}
 	
-	( FUNC ( DECINT {type = "INT";} | VOID {type = "VOID";} ) name=NAMEF LP (p=params {lp.add($p.out);})* RP c=corps
-	{ ASD.Fonction func = new ASD.Fonction(type, $NAMEF.text, lp, $c.out); lfunc.add(func);}
+	( FUNC ( DECINT {type = "INT";} | VOID {type = "VOID";} ) IDENT LP (p=params {lp.add($p.out);} (VIRGULE p=params {lp.add($p.out);})* )? RP c=corps
+	{ ASD.Fonction func = new ASD.Fonction(type, $IDENT.text, lp, $c.out); lfunc.add(func);}
 	)*
 	
 	EOF
