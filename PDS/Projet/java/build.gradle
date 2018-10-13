@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'antlr'
+apply plugin: 'eclipse'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  antlr 'org.antlr:antlr4:4.7'
+}
+
+generateGrammarSource {
+  arguments += ['-no-visitor', '-no-listener']
+}
+
+jar {
+  manifest {
+    attributes (
+      'Main-Class': 'TP2.Main',
+      'Class-Path': configurations.runtimeClasspath.files.join(' ')
+    )
+  }
+}
